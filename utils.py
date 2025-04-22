@@ -223,15 +223,15 @@ def generate_reserved_keyboard(uuid):
     return keyboard
 
 
-def get_tracking_content(context, title=Title.CREATE.value):
-    from_station_name = context.user_data.get(FROM_STATION_NAME)
-    from_state_name = context.user_data.get(FROM_STATE_NAME)
-    to_station_name = context.user_data.get(TO_STATION_NAME)
-    to_state_name = context.user_data.get(TO_STATE_NAME)
-    date_value = context.user_data.get(DATE)
-    departure_time = context.user_data.get(DEPARTURE_TIME)
-    arrival_time = context.user_data.get(ARRIVAL_TIME)
-    partial_content = context.user_data.get(PARTIAL_CONTENT) or ''
+def get_tracking_content(data, title=Title.CREATE.value):
+    from_station_name = data.get(FROM_STATION_NAME)
+    from_state_name = data.get(FROM_STATE_NAME)
+    to_station_name = data.get(TO_STATION_NAME)
+    to_state_name = data.get(TO_STATE_NAME)
+    date_value = data.get(DATE)
+    departure_time = data.get(DEPARTURE_TIME)
+    arrival_time = data.get(ARRIVAL_TIME)
+    partial_content = data.get(PARTIAL_CONTENT) or ''
 
     title = f'<b>{title}</b>\n'
     departure = '' if from_state_name is None else (
@@ -242,16 +242,10 @@ def get_tracking_content(context, title=Title.CREATE.value):
             'Destination: <b>' +
             (f'{to_station_name}, ' if to_station_name is not None else '') + to_state_name + '</b>\n'
     )
+    date = ''
     if date_value is not None:
         weekday = get_weekday(datetime.strptime(date_value, '%Y-%m-%d').weekday())
-    date = '' if date_value is None else f'Date: <b>{date_value} ({weekday})</b>\n'
-
-    # departure_time, arrival_time = context.user_data.get(DEPARTURE_TIME), context.user_data.get(ARRIVAL_TIME)
-    # index = context.user_data.get(TRIP_DATA_INDEX, -1)
-    # trips_data = context.user_data.get(TRIPS_DATA, [])
-    # if 0 <= index < len(trips_data):
-    #     departure_time = trips_data[index].get('departure_time')
-    #     arrival_time = trips_data[index].get('arrival_time')
+        date = f'Date: <b>{date_value} ({weekday})</b>\n'
     time = '' if departure_time is None and arrival_time is None else (
         f'Time: <b>{departure_time} - {arrival_time}</b>\n'
     )

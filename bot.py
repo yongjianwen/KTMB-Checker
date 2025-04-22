@@ -2,7 +2,7 @@ import json
 import os
 import re
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import requests
 from telegram import InlineKeyboardMarkup, Update, ReplyKeyboardMarkup
@@ -79,7 +79,7 @@ async def set_from_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     reply_markup = InlineKeyboardMarkup(build_state_keyboard(context.user_data.get(STATIONS_DATA, [])))
     message = (
-        f'{get_tracking_content(context)}'
+        f'{get_tracking_content(context.user_data)}'
         '\n'
         'Where are you departing from?'
     )
@@ -119,7 +119,7 @@ async def set_from_station(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         )
     )
     message = (
-        f'{get_tracking_content(context)}'
+        f'{get_tracking_content(context.user_data)}'
     )
 
     context.user_data[LAST_MESSAGE] = await update.effective_message.edit_text(
@@ -146,7 +146,7 @@ async def set_to_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 
     reply_markup = InlineKeyboardMarkup(build_state_keyboard(context.user_data.get(STATIONS_DATA, []), True))
     message = (
-        f'{get_tracking_content(context)}'
+        f'{get_tracking_content(context.user_data)}'
         '\n'
         'Where are you going to?'
     )
@@ -179,7 +179,7 @@ async def set_to_station(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         )
     )
     message = (
-        f'{get_tracking_content(context)}'
+        f'{get_tracking_content(context.user_data)}'
     )
 
     context.user_data[LAST_MESSAGE] = await update.effective_message.edit_text(
@@ -206,7 +206,7 @@ async def set_date(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     reply_markup = InlineKeyboardMarkup(generate_friday_keyboard(True))
     message = (
-        f'{get_tracking_content(context)}'
+        f'{get_tracking_content(context.user_data)}'
         '\n'
         'What date? (YYYY-MM-DD, e.g. 2025-01-01)'
     )
@@ -263,7 +263,7 @@ async def set_trip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     reply_markup = InlineKeyboardMarkup(generate_trips_keyboard(context.user_data.get(TRIPS_DATA), True))
     message = (
-        f'{get_tracking_content(context)}'
+        f'{get_tracking_content(context.user_data)}'
         '\n'
         'What time?'
     )
@@ -296,7 +296,7 @@ async def set_track(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if COOKIE in context.user_data:
         session.cookies.update(context.user_data.get(COOKIE))
 
-    res = await get_seats_contents(context, session)
+    res = await get_seats_contents(context.user_data, session)
     if not res.get('status'):
         context.user_data[TO_STRIKETHROUGH] = True
         context.user_data[TO_HIDE_KEYBOARD] = False
@@ -311,10 +311,11 @@ async def set_track(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         return SET_TRIP
 
     context.user_data['overall_prices'] = res.get('overall_prices')
+    context.user_data[PARTIAL_CONTENT] = res.get(PARTIAL_CONTENT)
 
     reply_markup = InlineKeyboardMarkup(generate_tracking_keyboard(context.user_data['overall_prices'], True))
     message = (
-        f'{get_tracking_content(context)}'
+        f'{get_tracking_content(context.user_data)}'
         '\n'
         '<b>Confirm to track this train?</b>\n'
         '\n'
@@ -361,7 +362,9 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
                 DEPARTURE_TIME: context.user_data.get(DEPARTURE_TIME),
                 ARRIVAL_TIME: context.user_data.get(ARRIVAL_TIME),
                 PRICE: context.user_data.get(PRICE),
-                RESERVED_SEAT: None
+                RESERVED_SEAT: None,
+                'seats_left_by_prices': [],
+                'last_reminded': datetime.now()
             }
         )
 
@@ -399,7 +402,7 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     else:
         title = Title.NEW_TRACKING.value
 
-    res = await get_seats_contents(context, session)
+    res = await get_seats_contents(context.user_data, session)
     if not res.get('status'):
         context.user_data[TO_STRIKETHROUGH] = True
         context.user_data[TO_HIDE_KEYBOARD] = False
@@ -412,10 +415,50 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         )
         return SET_TRACK
 
+    context.user_data[PARTIAL_CONTENT] = res.get(PARTIAL_CONTENT)
+    for index, t in enumerate(context.user_data.get(TRACKING_LIST, [])):
+        if t.get('uuid') == tracking_uuid:
+            t = {
+                **t,
+                'seats_left_by_prices': res.get('seats_left_by_prices')
+            }
+            context.user_data[TRACKING_LIST][index] = t
+            break
+    print(context.user_data.get(TRACKING_LIST, []))
+
+    chat_id = update.effective_message.chat_id
+    try:
+        year, month, day = context.user_data.get(DATE).split('-')
+        hour, minute = context.user_data.get(DEPARTURE_TIME).split(':')
+        date_time = datetime(int(year), int(month), int(day), int(hour), int(minute)).timestamp()
+        context.job_queue.run_repeating(
+            alarm,
+            interval=10,
+            first=10,
+            last=date_time,
+            data={
+                COOKIE: context.user_data.get(COOKIE),
+                TOKEN: context.user_data.get(TOKEN),
+                'data': next(t for t in context.user_data.get(TRACKING_LIST, []))
+            },
+            name=str(tracking_uuid),
+            chat_id=chat_id
+        )
+    except Exception as e:
+        print(e)
+        context.user_data[TO_STRIKETHROUGH] = False
+        context.user_data[TO_HIDE_KEYBOARD] = True
+        await display_error_inline(
+            context,
+            {'error': 'Job scheduling error'},
+            InlineKeyboardMarkup(generate_tracking_keyboard(context.user_data['overall_prices'], True))
+        )
+        return SET_TRACK
+
     reply_markup = InlineKeyboardMarkup(generate_reserve_keyboard(tracking_uuid))
     price_message = 'any price' if context.user_data.get(PRICE) == -1 else f'RM {context.user_data.get(PRICE)}'
     message = (
-        f'{get_tracking_content(context, title)}'
+        f'{get_tracking_content(context.user_data, title)}'
         '\n'
         f'<i>Refreshed at: {datetime.now().strftime('%H:%M:%S')}</i>\n'
         '\n'
@@ -446,7 +489,7 @@ async def show_reserved(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     if COOKIE in context.user_data:
         session.cookies.update(context.user_data.get(COOKIE))
 
-    res = await get_seats_contents(context, session)
+    res = await get_seats_contents(context.user_data, session)
     if not res.get('status'):
         context.user_data[TO_STRIKETHROUGH] = False
         context.user_data[TO_HIDE_KEYBOARD] = True
@@ -457,6 +500,8 @@ async def show_reserved(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
             InlineKeyboardMarkup(generate_reserve_keyboard(tracking_uuid))
         )
         return START
+
+    context.user_data[PARTIAL_CONTENT] = res.get(PARTIAL_CONTENT)
 
     res = reserve_by_price(
         session,
@@ -497,7 +542,7 @@ async def show_reserved(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
     reply_markup = InlineKeyboardMarkup(generate_reserved_keyboard(tracking_uuid))
     message = (
-        f'{get_tracking_content(context, Title.NEW_RESERVATION.value)}'
+        f'{get_tracking_content(context.user_data, Title.NEW_RESERVATION.value)}'
         '\n'
         'Seat reserved successfully!\n'
         '\n'
@@ -520,8 +565,10 @@ async def cancel_tracking(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     await query.answer()
     tracking_uuid = re.search(UUID_PATTERN, query.data).group(0)
     context.user_data[TRACKING_LIST] = [
-        t for t in context.user_data.get(TRACKING_LIST) if t.get('uuid') != uuid.UUID(tracking_uuid)
+        t for t in context.user_data.get(TRACKING_LIST, []) if t.get('uuid') != uuid.UUID(tracking_uuid)
     ]
+    job_removed = remove_job_if_exists(tracking_uuid, context)
+    print(job_removed)
 
     context.user_data[TO_STRIKETHROUGH] = True
     context.user_data[TO_HIDE_KEYBOARD] = False
@@ -604,17 +651,19 @@ async def view_tracking(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         # print('Search Data:', context.user_data.get(SEARCH_DATA))
         # print('Trip data:', context.user_data.get(TRIP_DATA))
         # print('Token:', context.user_data.get(TOKEN))
-        res = await get_seats_contents(context, session)
+        res = await get_seats_contents(context.user_data, session)
         if not res.get('status'):
             await reply_error(update, context, res)
             return START
+
+        context.user_data[PARTIAL_CONTENT] = res.get(PARTIAL_CONTENT)
 
         if reserved_seat is None:
             reply_markup = InlineKeyboardMarkup(generate_reserve_keyboard(tracking_uuid))
             price_message = 'any price' if context.user_data.get(PRICE) == -1 else f'RM {context.user_data.get(PRICE)}'
             context.user_data[LAST_MESSAGE] = await update.message.reply_text(
                 (
-                    f'{get_tracking_content(context, Title.VIEW.value + str(index + 1))}'
+                    f'{get_tracking_content(context.user_data, Title.VIEW.value + str(index + 1))}'
                     '\n'
                     f'<i>Refreshed at: {datetime.now().strftime('%H:%M:%S')}</i>\n'
                     '\n'
@@ -627,7 +676,7 @@ async def view_tracking(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
             reply_markup = InlineKeyboardMarkup(generate_reserved_keyboard(tracking_uuid))
             context.user_data[LAST_MESSAGE] = await update.message.reply_text(
                 (
-                    f'{get_tracking_content(context, Title.VIEW.value + str(index + 1))}'
+                    f'{get_tracking_content(context.user_data, Title.VIEW.value + str(index + 1))}'
                     '\n'
                     'Seat reserved successfully!\n'
                     '\n'
@@ -644,7 +693,149 @@ async def view_tracking(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
 async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     job = context.job
-    await context.bot.send_message(job.chat_id, text=f"Beep! {job.data} seconds are over!")
+
+    session = requests.Session()
+    session.cookies.update(job.data.get(COOKIE))
+
+    res = get_stations(session)
+    if not res.get('status'):
+        print('get_stations error')
+        return
+
+    stations_data = res.get(STATIONS_DATA)
+
+    t = job.data.get('data')
+    tracking_uuid = t.get('uuid')
+    from_state_name = t.get(FROM_STATE_NAME)
+    from_station_id = t.get(FROM_STATION_ID)
+    from_station_name = t.get(FROM_STATION_NAME)
+    to_state_name = t.get(TO_STATE_NAME)
+    to_station_id = t.get(TO_STATION_ID)
+    to_station_name = t.get(TO_STATION_NAME)
+    date = t.get(DATE)
+    departure_time = t.get(DEPARTURE_TIME)
+    arrival_time = t.get(ARRIVAL_TIME)
+    price = t.get(PRICE)
+    reserved_seat = t.get(RESERVED_SEAT)
+    initial_seats_left_by_prices = t.get('seats_left_by_prices')
+    last_reminded = t.get('last_reminded')
+
+    year, month, day = date.split('-')
+
+    res = get_trips(
+        session,
+        datetime(int(year), int(month), int(day)),
+        get_station_by_id(stations_data, from_station_id),
+        get_station_by_id(stations_data, to_station_id),
+        job.data.get(TOKEN)
+    )
+    if not res.get('status'):
+        print('get_trips error')
+        return
+        # print('trips_res:', trips_res)
+
+    search_data = res.get('search_data')
+    trips_data = json.loads(json.dumps(res.get('trips_data')))
+    trip = next(t for t in trips_data if t.get('departure_time') == departure_time)
+    trip_data = trip.get(TRIP_DATA)
+
+    # print('Search Data:', context.user_data.get(SEARCH_DATA))
+    # print('Trip data:', context.user_data.get(TRIP_DATA))
+    # print('Token:', context.user_data.get(TOKEN))
+    res = await get_seats_contents(
+        {
+            SEARCH_DATA: search_data,
+            TRIP_DATA: trip_data,
+            TOKEN: job.data.get(TOKEN)
+        },
+        session
+    )
+    if not res.get('status'):
+        print('get_seats_contents error')
+        return
+
+    partial_content = res.get(PARTIAL_CONTENT)
+    new_seats_left_by_prices = res.get('seats_left_by_prices')
+
+    # print('initial:', initial_seats_left_by_prices)
+    # print('new:', new_seats_left_by_prices)
+
+    to_remind = False
+    reason = ''
+    # selected a price and initial was 0
+    if price != -1 and str(price) not in initial_seats_left_by_prices:
+        print('A')
+        if str(price) in new_seats_left_by_prices:
+            print('B')
+            to_remind = True
+            reason = '‼️ New seat(s) has appeared!'
+    # selected any price and initial was 0
+    elif price == -1 and not initial_seats_left_by_prices:
+        print('C')
+        if new_seats_left_by_prices:
+            print('D')
+            to_remind = True
+            reason = '‼️ New seat(s) has appeared!'
+    else:
+        print('E')
+        # selected a price and initial was not 0
+        for p, s in new_seats_left_by_prices.items():
+            print('F')
+            print(type(p))
+            print(type(price))
+            if p == str(price) and s < initial_seats_left_by_prices.get(p):
+                print('G')
+                to_remind = True
+                reason = '‼️ Tickets are selling fast!'
+                break
+        # selected any price and initial was not 0
+        for p, s in new_seats_left_by_prices.items():
+            print('H')
+            if price == -1 and s < initial_seats_left_by_prices.get(p, 0):
+                print('I')
+                to_remind = True
+                reason = '‼️ Tickets are selling fast!'
+                break
+    # print('to_remind:', to_remind)
+    # print(last_reminded + timedelta(seconds=60*15) < datetime.now())
+
+    if to_remind and last_reminded + timedelta(seconds=60*15) < datetime.now():
+        t['last_reminded'] = datetime.now()
+        if reserved_seat is None:
+            price_message = 'any price' if price == -1 else f'RM {price}'
+            await context.bot.send_message(
+                job.chat_id,
+                text=(
+                    f'{get_tracking_content({
+                        **t,
+                        PARTIAL_CONTENT: partial_content
+                    }, reason)}'
+                    '\n'
+                    f'<i>Refreshed at: {datetime.now().strftime('%H:%M:%S')}</i>\n'
+                    '\n'
+                    f'<b>Reserve a random seat of {price_message}?</b>'
+                ),
+                reply_markup=None,
+                parse_mode='HTML'
+            )
+        else:
+            await context.bot.send_message(
+                job.chat_id,
+                text=(
+                    f'{get_tracking_content({
+                        **t,
+                        PARTIAL_CONTENT: partial_content
+                    }, 'Alarm')}'
+                    '\n'
+                    'Seat reserved successfully!\n'
+                    '\n'
+                    f'Coach: <b>{reserved_seat.get('CoachLabel')}</b>\n'
+                    f'Seat: <b>{reserved_seat.get('SeatNo')}</b>\n'
+                    f'Price: <b>RM {reserved_seat.get('Price')}</b>'
+                ),
+                reply_markup=None,
+                parse_mode='HTML'
+            )
 
 
 def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
@@ -655,29 +846,6 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
     for job in current_jobs:
         job.schedule_removal()
     return True
-
-
-async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    chat_id = update.effective_message.chat_id
-    try:
-        job_removed = remove_job_if_exists(str(chat_id), context)
-        context.job_queue.run_once(alarm, 10, chat_id=chat_id, name=str(chat_id), data=10)
-
-        text = "Timer successfully set!"
-        if job_removed:
-            text += " Old one was removed."
-        await update.effective_message.reply_text(text)
-
-    except (IndexError, ValueError):
-        await update.effective_message.reply_text("Usage: /set <seconds>")
-
-
-async def unset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Remove the job if the user changed their mind."""
-    chat_id = update.message.chat_id
-    job_removed = remove_job_if_exists(str(chat_id), context)
-    text = "Timer successfully cancelled!" if job_removed else "You have no active timer."
-    await update.message.reply_text(text)
 
 
 async def logout_ktmb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -757,6 +925,8 @@ async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data.clear()
     # context.user_data[TO_STRIKETHROUGH] = False
     # context.user_data[TO_HIDE_KEYBOARD] = False
+    for job in context.job_queue.jobs():
+        job.schedule_removal()
 
     context.user_data[LAST_MESSAGE] = await update.message.reply_text(
         text=f'Cleared all user data',
@@ -791,8 +961,6 @@ def main():
                     set_reserve,
                     pattern=f'^Cancel Reservation/{UUID_PATTERN}$'
                 ),
-                CommandHandler('set', set_timer),
-                CommandHandler('unset', unset),
                 MessageHandler(filters.Regex('^Reset$'), reset)
             ],
             SET_FROM_STATE: [

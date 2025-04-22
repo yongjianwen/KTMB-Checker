@@ -307,29 +307,27 @@ def get_seats(session, search_data, trip_data, token):
         # 5: Not Shown
 
         seats_data = []
+        seats_left_by_prices = {}
         for coach in coach_data:
-            seats = [
-                # {
-                #     'Price': seat['Price'],
-                #     'SeatIndex': seat['SeatIndex'],
-                #     'SeatNo': seat['SeatNo'],
-                #     'SeatType': seat['SeatType'],
-                #     'SeatTypeName': seat['SeatTypeName'],
-                #     'ServiceType': seat['ServiceType'],
-                #     'Status': seat['Status'],
-                #     'Surcharge': seat['Surcharge'],
-                #     'SeatData': seat['SeatData']
-                # }
-                seat for seat in coach['Seats'] if seat['Status'] == '1'
-            ]
-            prices = [
-                price for price in set([seat['Price'] for seat in seats])
-            ]
+            seats = []
+            prices = set()
+            for seat in coach.get('Seats'):
+                if seat.get('Status') == '1':
+                    prices.add(seat.get('Price'))
+                    seats.append(seat)
+                    price_str = str(seat.get('Price'))
+                    seats_left_by_prices[price_str] = seats_left_by_prices.get(price_str, 0) + 1
+            # seats = [
+            #     seat for seat in coach['Seats'] if seat['Status'] == '1'
+            # ]
+            # prices = [
+            #     price for price in set([seat['Price'] for seat in seats])
+            # ]
             seats_data.append(
                 {
                     'CoachLabel': coach.get('CoachLabel'),
                     'CoachData': {
-                        'SeatsLeft': coach.get('SeatAvailable'),
+                        'SeatsLeft': len(seats),
                         'Prices': prices,
                         'Seats': seats
                     }
@@ -340,7 +338,8 @@ def get_seats(session, search_data, trip_data, token):
         return {
             'status': True,
             'layout_data': layout_data,
-            'seats_data': seats_data
+            'seats_data': seats_data,
+            'seats_left_by_prices': seats_left_by_prices
         }
     except Exception as e:
         print(e)

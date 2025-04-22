@@ -5,13 +5,13 @@ from utils import COOKIE, TOKEN, LAST_MESSAGE, TO_STRIKETHROUGH, FROM_STATE_NAME
 
 
 ### TEST
-async def get_seats_contents(context, session):
+async def get_seats_contents(data, session):
     res = get_seats(
         session,
         # None,
-        context.user_data.get(SEARCH_DATA),
-        context.user_data.get(TRIP_DATA),
-        context.user_data.get(TOKEN)
+        data.get(SEARCH_DATA),
+        data.get(TRIP_DATA),
+        data.get(TOKEN)
     )
     if not res.get('status'):
         return {
@@ -19,8 +19,9 @@ async def get_seats_contents(context, session):
             'error': res.get('error')
         }
 
-    context.user_data[LAYOUT_DATA] = res.get('layout_data')
+    data[LAYOUT_DATA] = res.get('layout_data')
     seats_data = res.get('seats_data')
+    # print(seats_data)
 
     contents = ''
     overall_prices = set()
@@ -35,12 +36,13 @@ async def get_seats_contents(context, session):
                 overall_prices.add(price)
             line = line[:-3] + ')'
         contents += line + '\n'
-    context.user_data[PARTIAL_CONTENT] = contents
 
     return {
         'status': True,
         'seats_data': seats_data,
-        'overall_prices': overall_prices
+        'overall_prices': overall_prices,
+        PARTIAL_CONTENT: contents,
+        'seats_left_by_prices': res.get('seats_left_by_prices')
     }
 
 
@@ -76,7 +78,7 @@ async def display_error_inline(context, res, reply_markup=None):
     if context.user_data.get(LAST_MESSAGE):
         last_message = context.user_data.get(LAST_MESSAGE)
         message = (
-            f'{get_tracking_content(context)}'
+            f'{get_tracking_content(context.user_data)}'
             '\n'
             f'❌ We encountered an error. Please try again later.\n\n👾 For dev: {res.get('error')}'
         )
