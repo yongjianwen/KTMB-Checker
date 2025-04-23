@@ -43,7 +43,7 @@ bottom_reply_markup = ReplyKeyboardMarkup(bottom_keyboard, one_time_keyboard=Fal
 app = Flask(__name__)
 
 
-@app.route('/')
+@app.route('/', methods=['POST'])
 def home():
     update = Update.de_json(request.get_json(force=True), application.bot)
     asyncio.run(application.process_update(update))
@@ -850,7 +850,6 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
-    """Remove job with given name. Returns whether job was removed."""
     current_jobs = context.job_queue.get_jobs_by_name(name)
     if not current_jobs:
         return False
@@ -949,11 +948,11 @@ async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 # def main():
 # Create the Application and pass it your bot's token.
-persistence = PicklePersistence(filepath="ktmb_conversation_data")
+persistence = PicklePersistence(filepath='ktmb_conversation_data')
 application = Application.builder().token(BOT_TOKEN).persistence(persistence).build()
 
 conv_handler = ConversationHandler(
-    entry_points=[CommandHandler("start", start)],
+    entry_points=[CommandHandler('start', start)],
     states={
         START: [
             CallbackQueryHandler(
@@ -1004,7 +1003,7 @@ conv_handler = ConversationHandler(
         ]
     },
     fallbacks=[
-        CommandHandler("start", start),
+        CommandHandler('start', start),
         MessageHandler(filters.Regex(f'^{NEW}$'), set_from_state),
         MessageHandler(filters.Regex(f'^{VIEW}$'), view_tracking),
         MessageHandler(filters.Regex(f'^{re.escape(LOGIN)}$'), login_ktmb),
@@ -1020,8 +1019,8 @@ application.add_handler(conv_handler)
 # Opens a long-running thread, not supported in Hugging Face Spaces, use webhooks instead
 # application.run_polling(allowed_updates=Update.ALL_TYPES)
 
-# if __name__ == "__main__":
+# if __name__ == '__main__':
 #     main()
 
 # if __name__ == '__main__':
-#     app.run(host="0.0.0.0", port=7860)
+#     app.run(host='0.0.0.0', port=7860)
