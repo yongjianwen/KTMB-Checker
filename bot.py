@@ -1017,10 +1017,11 @@ conv_handler = ConversationHandler(
 application.add_handler(conv_handler)
 
 # Run the bot until the user presses Ctrl-C
-application.run_polling(allowed_updates=Update.ALL_TYPES)
+# Opens a long-running thread, not supported in Hugging Face Spaces, use webhooks instead
+# application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 # if __name__ == "__main__":
 #     main()
 
-if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=7860)
+# if __name__ == '__main__':
+#     app.run(host="0.0.0.0", port=7860)
