@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import re
@@ -5,6 +6,7 @@ import uuid
 from datetime import datetime, timedelta
 
 import requests
+from flask import Flask, request
 from telegram import InlineKeyboardMarkup, Update, ReplyKeyboardMarkup
 from telegram.constants import ChatAction
 from telegram.ext import (
@@ -37,6 +39,15 @@ bottom_keyboard = [
     ['Reset']
 ]
 bottom_reply_markup = ReplyKeyboardMarkup(bottom_keyboard, one_time_keyboard=False, resize_keyboard=True)
+
+app = Flask(__name__)
+
+
+@app.route('/')
+def home():
+    update = Update.de_json(request.get_json(force=True), application.bot)
+    asyncio.run(application.process_update(update))
+    return {'status': 'Flask API running on Hugging Face!'}
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -799,7 +810,7 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     # print('to_remind:', to_remind)
     # print(last_reminded + timedelta(seconds=60*15) < datetime.now())
 
-    if to_remind and last_reminded + timedelta(seconds=60*15) < datetime.now():
+    if to_remind and last_reminded + timedelta(seconds=60 * 15) < datetime.now():
         t['last_reminded'] = datetime.now()
         if reserved_seat is None:
             price_message = 'any price' if price == -1 else f'RM {price}'
@@ -936,78 +947,80 @@ async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return START
 
 
-def main():
-    # Create the Application and pass it your bot's token.
-    persistence = PicklePersistence(filepath="ktmb_conversation_data")
-    application = Application.builder().token(BOT_TOKEN).persistence(persistence).build()
+# def main():
+# Create the Application and pass it your bot's token.
+persistence = PicklePersistence(filepath="ktmb_conversation_data")
+application = Application.builder().token(BOT_TOKEN).persistence(persistence).build()
 
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("start", start)],
-        states={
-            START: [
-                CallbackQueryHandler(
-                    show_reserved,
-                    pattern=f'^Reserve/{UUID_PATTERN}$'
-                ),
-                CallbackQueryHandler(
-                    set_reserve,
-                    pattern=f'^Refresh/{UUID_PATTERN}$'
-                ),
-                CallbackQueryHandler(
-                    cancel_tracking,
-                    pattern=f'^Cancel Tracking/{UUID_PATTERN}$'
-                ),
-                CallbackQueryHandler(
-                    set_reserve,
-                    pattern=f'^Cancel Reservation/{UUID_PATTERN}$'
-                ),
-                MessageHandler(filters.Regex('^Reset$'), reset)
-            ],
-            SET_FROM_STATE: [
-                CallbackQueryHandler(set_from_station)
-            ],
-            SET_FROM_STATION: [
-                CallbackQueryHandler(set_from_state, pattern='^Back$'),
-                CallbackQueryHandler(set_to_state)
-            ],
-            SET_TO_STATE: [
-                CallbackQueryHandler(set_from_station, pattern='^Back$'),
-                CallbackQueryHandler(set_to_station)
-            ],
-            SET_TO_STATION: {
-                CallbackQueryHandler(set_to_state, pattern='^Back$'),
-                CallbackQueryHandler(set_date)
-            },
-            SET_DATE: [
-                CallbackQueryHandler(set_to_station, pattern='^Back$'),
-                CallbackQueryHandler(set_trip),
-                MessageHandler(filters.Regex('^\\d{4}-\\d{2}-\\d{2}$'), set_trip)
-            ],
-            SET_TRIP: [
-                CallbackQueryHandler(set_date, pattern='^Back$'),
-                CallbackQueryHandler(set_track)
-            ],
-            SET_TRACK: [
-                CallbackQueryHandler(set_trip, pattern='^Back$'),
-                CallbackQueryHandler(set_reserve, pattern='^-?\\d+$')
-            ]
-        },
-        fallbacks=[
-            CommandHandler("start", start),
-            MessageHandler(filters.Regex(f'^{NEW}$'), set_from_state),
-            MessageHandler(filters.Regex(f'^{VIEW}$'), view_tracking),
-            MessageHandler(filters.Regex(f'^{re.escape(LOGIN)}$'), login_ktmb),
-            MessageHandler(filters.Regex(f'^{re.escape(LOGOUT)}$'), logout_ktmb)
+conv_handler = ConversationHandler(
+    entry_points=[CommandHandler("start", start)],
+    states={
+        START: [
+            CallbackQueryHandler(
+                show_reserved,
+                pattern=f'^Reserve/{UUID_PATTERN}$'
+            ),
+            CallbackQueryHandler(
+                set_reserve,
+                pattern=f'^Refresh/{UUID_PATTERN}$'
+            ),
+            CallbackQueryHandler(
+                cancel_tracking,
+                pattern=f'^Cancel Tracking/{UUID_PATTERN}$'
+            ),
+            CallbackQueryHandler(
+                set_reserve,
+                pattern=f'^Cancel Reservation/{UUID_PATTERN}$'
+            ),
+            MessageHandler(filters.Regex('^Reset$'), reset)
         ],
-        name='ktmb_conversation',
-        persistent=True
-    )
-    # Add ConversationHandler to application that will be used for handling updates
-    application.add_handler(conv_handler)
+        SET_FROM_STATE: [
+            CallbackQueryHandler(set_from_station)
+        ],
+        SET_FROM_STATION: [
+            CallbackQueryHandler(set_from_state, pattern='^Back$'),
+            CallbackQueryHandler(set_to_state)
+        ],
+        SET_TO_STATE: [
+            CallbackQueryHandler(set_from_station, pattern='^Back$'),
+            CallbackQueryHandler(set_to_station)
+        ],
+        SET_TO_STATION: {
+            CallbackQueryHandler(set_to_state, pattern='^Back$'),
+            CallbackQueryHandler(set_date)
+        },
+        SET_DATE: [
+            CallbackQueryHandler(set_to_station, pattern='^Back$'),
+            CallbackQueryHandler(set_trip),
+            MessageHandler(filters.Regex('^\\d{4}-\\d{2}-\\d{2}$'), set_trip)
+        ],
+        SET_TRIP: [
+            CallbackQueryHandler(set_date, pattern='^Back$'),
+            CallbackQueryHandler(set_track)
+        ],
+        SET_TRACK: [
+            CallbackQueryHandler(set_trip, pattern='^Back$'),
+            CallbackQueryHandler(set_reserve, pattern='^-?\\d+$')
+        ]
+    },
+    fallbacks=[
+        CommandHandler("start", start),
+        MessageHandler(filters.Regex(f'^{NEW}$'), set_from_state),
+        MessageHandler(filters.Regex(f'^{VIEW}$'), view_tracking),
+        MessageHandler(filters.Regex(f'^{re.escape(LOGIN)}$'), login_ktmb),
+        MessageHandler(filters.Regex(f'^{re.escape(LOGOUT)}$'), logout_ktmb)
+    ],
+    name='ktmb_conversation',
+    persistent=True
+)
+# Add ConversationHandler to application that will be used for handling updates
+application.add_handler(conv_handler)
 
-    # Run the bot until the user presses Ctrl-C
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+# Run the bot until the user presses Ctrl-C
+application.run_polling(allowed_updates=Update.ALL_TYPES)
 
+# if __name__ == "__main__":
+#     main()
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=7860)
