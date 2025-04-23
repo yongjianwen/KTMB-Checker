@@ -56,7 +56,7 @@ def webhook():
         update = Update.de_json(request.get_json(force=True), application.bot)
 
         async def handle():
-            nonlocal initialized
+            global initialized
             if not initialized:
                 await application.initialize()
                 initialized = True
