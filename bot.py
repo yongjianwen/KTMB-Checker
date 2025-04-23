@@ -43,11 +43,14 @@ bottom_reply_markup = ReplyKeyboardMarkup(bottom_keyboard, one_time_keyboard=Fal
 app = Flask(__name__)
 
 
-@app.route('/', methods=['POST'])
-def home():
-    update = Update.de_json(request.get_json(force=True), application.bot)
-    asyncio.run(application.process_update(update))
-    return {'status': 'Flask API running on Hugging Face!'}
+@app.route('/', methods=['GET', 'POST'])
+def webhook():
+    if request.method == 'GET':
+        return {'status': 'Bot is running on Hugging Face!'}
+    elif request.method == 'POST':
+        update = Update.de_json(request.get_json(force=True), application.bot)
+        asyncio.run(application.process_update(update))
+        return {'ok': True}
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
