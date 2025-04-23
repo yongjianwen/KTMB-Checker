@@ -42,14 +42,27 @@ bottom_reply_markup = ReplyKeyboardMarkup(bottom_keyboard, one_time_keyboard=Fal
 
 app = Flask(__name__)
 
+# Initialize only once
+initialized = False
+
 
 @app.route('/', methods=['GET', 'POST'])
 def webhook():
+    global initialized
+
     if request.method == 'GET':
         return {'status': 'Bot is running on Hugging Face!'}
     elif request.method == 'POST':
         update = Update.de_json(request.get_json(force=True), application.bot)
-        asyncio.run(application.process_update(update))
+
+        async def handle():
+            nonlocal initialized
+            if not initialized:
+                await application.initialize()
+                initialized = True
+            await application.process_update(update)
+
+        asyncio.run(handle())
         return {'ok': True}
 
 
