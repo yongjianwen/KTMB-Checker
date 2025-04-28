@@ -1,46 +1,18 @@
 import json
-import os
+import logging
 import re
-from datetime import datetime
 
-import requests
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv
-# from flask import Flask
-# from flask_cors import CORS
 from requests.exceptions import RequestException
 
-load_dotenv()  # Loads variables from .env
-
-EMAIL = os.getenv('EMAIL')
-PASSWORD = os.getenv('PASSWORD')
-
-
-# app = Flask(__name__)
-
-# CORS(app, resources={r'/*': {
-#     'origins': [
-#         'http://yongjianwen-static.s3-website-ap-southeast-1.amazonaws.com',
-#         'http://127.0.0.1:5500'
-#     ]
-# }})
-
-# session = requests.Session()  # May be expired in 30 days
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+)
+logging.getLogger('httpx').setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
-# @app.route('/ktmb')
-# def ktmb():
-#     main()
-
-
-def login(session, debug=False):
-    if debug:
-        return {
-            'status': True,
-            'token': 'abc',
-            'stations_data': []
-        }
-
+def login(session, email, password):
     try:
         # 01 Login
         url = 'https://online.ktmb.com.my/Account/Login'
@@ -48,71 +20,34 @@ def login(session, debug=False):
         soup = BeautifulSoup(r.content, 'html.parser')
 
         token = soup.find('input', attrs={'name': '__RequestVerificationToken'}).get('value')
-        # print(token)
 
         # 02 Login
         data = {
             'RedirectData': '',
             'ReturnUrl': '',
-            'Email': EMAIL,
-            'Password': PASSWORD,
+            'Email': email,
+            'Password': password,
             '__RequestVerificationToken': token,
             'SubmitValue': 'Login'
         }
         r = session.post(url, data=data)
         soup = BeautifulSoup(r.content, 'html.parser')
+        # logger.info(soup)
 
         token = soup.find('input', attrs={'name': '__RequestVerificationToken'}).get('value')
-        # print(token)
 
         script_tags = soup.find_all('script', attrs={'type': 'text/javascript'})
 
-        for script_tag in script_tags:
-            script_content = script_tag.string
-            # print(script_content)
-            # print('---------------------------------------------------------------------')
-
-            grouped_stations_match = re.search(r'var\s+groupedStations\s*=\s*(\[\s*{.*?}\s*]);', script_content,
-                                               re.DOTALL)
-            if grouped_stations_match:
-                grouped_stations_data = json.loads(grouped_stations_match.group(1))
-                # print('Grouped Stations:', grouped_stations_data)
-
-                js_stations_match = re.search(r'var\s+jsStations\s*=\s*(\[\s*{.*?}\s*]);', script_content, re.DOTALL)
-                if js_stations_match:
-                    js_stations_data = json.loads(js_stations_match.group(1))
-                    # print('JS Stations:', js_stations_data)
-
-                    stations_data = [
-                        {
-                            **state,
-                            'Stations': [
-                                {
-                                    **station,
-                                    'StationData': next(
-                                        s['StationData'] for s in js_stations_data if s['Id'] == station['Id'])
-                                }
-                                for station in state['Stations']
-                            ]
-                        }
-                        for state in grouped_stations_data
-                    ]
-                    # print('Merged Stations:', stations_data)
-
-                    print('>> Logged in successfully')
-                    return {
-                        'status': True,
-                        'token': token,
-                        'stations_data': stations_data
-                    }
+        res = get_stations_data_from_script_tags(script_tags)
+        if res.get('status'):
+            return {
+                'status': True,
+                'token': token
+            }
     except Exception as e:
-        print(e)
-    # except RequestException as e:
-    #     print(e)
-    # except AttributeError as e:
-    #     print(e)
+        logger.info(e)
 
-    print('>> Log in error')
+    logger.info('>> Log in error')
     return {
         'status': False,
         'error': 'Login error'
@@ -127,45 +62,14 @@ def get_stations(session):
 
         script_tags = soup.find_all('script', attrs={'type': 'text/javascript'})
 
-        for script_tag in script_tags:
-            script_content = script_tag.string
-            # print(script_content)
-            # print('---------------------------------------------------------------------')
-
-            grouped_stations_match = re.search(r'var\s+groupedStations\s*=\s*(\[\s*{.*?}\s*]);', script_content,
-                                               re.DOTALL)
-            if grouped_stations_match:
-                grouped_stations_data = json.loads(grouped_stations_match.group(1))
-                # print('Grouped Stations:', grouped_stations_data)
-
-                js_stations_match = re.search(r'var\s+jsStations\s*=\s*(\[\s*{.*?}\s*]);', script_content, re.DOTALL)
-                if js_stations_match:
-                    js_stations_data = json.loads(js_stations_match.group(1))
-                    # print('JS Stations:', js_stations_data)
-
-                    stations_data = [
-                        {
-                            **state,
-                            'Stations': [
-                                {
-                                    **station,
-                                    'StationData': next(
-                                        s['StationData'] for s in js_stations_data if s['Id'] == station['Id'])
-                                }
-                                for station in state['Stations']
-                            ]
-                        }
-                        for state in grouped_stations_data
-                    ]
-                    # print('Merged Stations:', stations_data)
-
-                    print('>> Get stations successfully')
-                    return {
-                        'status': True,
-                        'stations_data': stations_data
-                    }
+        res = get_stations_data_from_script_tags(script_tags)
+        if res.get('status'):
+            return {
+                'status': True,
+                'stations_data': res.get('stations_data')
+            }
     except Exception as e:
-        print(e)
+        logger.info(e)
 
     return {
         'status': False,
@@ -173,26 +77,47 @@ def get_stations(session):
     }
 
 
-# def get_from_and_to_stations(from_station_name, to_station_name):
-#     from_station = next(
-#         (
-#             {'StationData': station['StationData'], 'Id': station['Id']}
-#             for state in stations_data
-#             for station in state['Stations']
-#             if station['Description'].lower() == from_station_name.lower()
-#         )
-#         , None)
-#
-#     to_station = next(
-#         (
-#             {'StationData': station['StationData'], 'Id': station['Id']}
-#             for state in stations_data
-#             for station in state['Stations']
-#             if station['Description'].lower() == to_station_name.lower()
-#         )
-#         , None)
-#
-#     return from_station, to_station
+def get_stations_data_from_script_tags(script_tags):
+    for script_tag in script_tags:
+        script_content = script_tag.string
+
+        grouped_stations_match = re.search(r'var\s+groupedStations\s*=\s*(\[\s*{.*?}\s*]);', script_content,
+                                           re.DOTALL)
+        if grouped_stations_match:
+            grouped_stations_data = json.loads(grouped_stations_match.group(1))
+            # logger.info('Grouped Stations:', grouped_stations_data)
+
+            js_stations_match = re.search(r'var\s+jsStations\s*=\s*(\[\s*{.*?}\s*]);', script_content, re.DOTALL)
+            if js_stations_match:
+                js_stations_data = json.loads(js_stations_match.group(1))
+                # logger.info('JS Stations:', js_stations_data)
+
+                stations_data = [
+                    {
+                        **state,
+                        'Stations': [
+                            {
+                                **station,
+                                'StationData': next(
+                                    s['StationData'] for s in js_stations_data if s['Id'] == station['Id'])
+                            }
+                            for station in state['Stations']
+                        ]
+                    }
+                    for state in grouped_stations_data
+                ]
+                # logger.info('Merged Stations:', stations_data)
+
+                logger.info('>> Get stations successfully')
+                return {
+                    'status': True,
+                    'stations_data': stations_data
+                }
+
+    return {
+        'status': False,
+        'error': 'Get stations error'
+    }
 
 
 def get_station_by_id(stations_data, station_id):
@@ -225,11 +150,20 @@ def get_trips(session, trip_date, from_station, to_station, token):
         }
         r = session.post(url, headers=headers, data=data)
         soup = BeautifulSoup(r.content, 'html.parser')
+        # with open('response.txt', 'w') as f:
+        #     f.write(str(soup))
 
+        oops = soup.select('div.oops')
+        # logger.info('oops:', str(oops))
+        if len(oops) > 0:
+            logger.info('>> Get trips error - log in related')
+            return {
+                'status': False,
+                'error': 'Get trips error = log in related',
+                'retry': True
+            }
         search_data = soup.find(id='SearchData').get('value')
-        # print(search_data)
         form_validation_code = soup.find(id='FormValidationCode').get('value')
-        # print(form_validation_code)
 
         # 04 Get Trip Trip
         url = 'https://online.ktmb.com.my/Trip/Trip'
@@ -242,10 +176,10 @@ def get_trips(session, trip_date, from_station, to_station, token):
             'BookingTripSequenceNo': 1
         }
         r = session.post(url, headers=headers, json=data)
-        # print(r.content)
         soup = BeautifulSoup(r.content, 'html.parser')
+        # with open('response2.txt', 'w') as f:
+        #     f.write(str(soup))
         soup = BeautifulSoup(json.loads(str(soup))['data'], 'html.parser')
-        # print(soup)
 
         trip_rows = soup.find('tbody').find_all('tr')
         trips_data = []
@@ -262,18 +196,18 @@ def get_trips(session, trip_date, from_station, to_station, token):
                     'trip_data': tds[6].find('a').get('data-tripdata')
                 }
             )
-        # print(trips_data)
+        # logger.info(trips_data)
 
-        print('>> Get trips successfully')
+        logger.info('>> Get trips successfully')
         return {
             'status': True,
             'search_data': search_data,
             'trips_data': trips_data
         }
     except Exception as e:
-        print(e)
+        logger.info(e)
 
-    print('>> Get trips error')
+    logger.info('>> Get trips error')
     return {
         'status': False,
         'error': 'Get trips error'
@@ -291,13 +225,14 @@ def get_seats(session, search_data, trip_data, token):
             'Pax': 1
         }
         r = session.post(url, headers=headers, json=data)
+        # logger.info(r.content)
         json_data = json.loads(r.content).get('Data')
-        # print(json_data)
+        # logger.info(json_data)
 
         layout_data = json_data.get('LayoutData')
-        # print(layout_data)
+        # logger.info(layout_data)
         coach_data = json_data.get('Coaches')
-        # print(coach_data)
+        # logger.info(coach_data)
 
         # 0: Blocked
         # 1: Available
@@ -317,12 +252,7 @@ def get_seats(session, search_data, trip_data, token):
                     seats.append(seat)
                     price_str = str(seat.get('Price'))
                     seats_left_by_prices[price_str] = seats_left_by_prices.get(price_str, 0) + 1
-            # seats = [
-            #     seat for seat in coach['Seats'] if seat['Status'] == '1'
-            # ]
-            # prices = [
-            #     price for price in set([seat['Price'] for seat in seats])
-            # ]
+
             seats_data.append(
                 {
                     'CoachLabel': coach.get('CoachLabel'),
@@ -334,7 +264,7 @@ def get_seats(session, search_data, trip_data, token):
                 }
             )
 
-        print('>> Get seats successfully')
+        logger.info('>> Get seats successfully')
         return {
             'status': True,
             'layout_data': layout_data,
@@ -342,9 +272,9 @@ def get_seats(session, search_data, trip_data, token):
             'seats_left_by_prices': seats_left_by_prices
         }
     except Exception as e:
-        print(e)
+        logger.info(e)
 
-    print('>> Get seats error')
+    logger.info('>> Get seats error')
     return {
         'status': False,
         'error': 'Get seats error'
@@ -397,17 +327,17 @@ def reserve(session, search_data, trip_data, layout_data, seat_data, token):
         }
         r = session.post(url, headers=headers, json=data)
         booking_data = json.loads(r.content).get('data').get('bookingData')
-        # print(r.content)
+        # logger.info(r.content)
 
-        print('>> Reserved successfully')
+        logger.info('>> Reserved successfully')
         return {
             'status': True,
             'booking_data': booking_data
         }
     except Exception as e:
-        print(e)
+        logger.info(e)
 
-    print('>> Reserve error')
+    logger.info('>> Reserve error')
     return {
         'status': False,
         'error': 'Reserve error'
@@ -425,16 +355,16 @@ def cancel_reservation(session, search_data, booking_data, token):
         }
         r = session.post(url, headers=headers, json=data)
         status = json.loads(r.content).get('status')
-        # print(status)
+        # logger.info(status)
 
-        print('>> Cancel successfully')
+        logger.info('>> Cancel successfully')
         return {
             'status': status
         }
     except Exception as e:
-        print(e)
+        logger.info(e)
 
-    print('>> Cancel error')
+    logger.info('>> Cancel error')
     return {
         'status': False,
         'error': 'Cancel error'
@@ -446,82 +376,15 @@ def logout(session):
         url = 'https://online.ktmb.com.my/Account/Logout'
         session.get(url)
 
-        print('>> Logout executed')
+        logger.info('>> Logout executed')
         return {
             'status': True
         }
     except RequestException as e:
-        print(e)
+        logger.info(e)
 
-    print('>> Logout error')
+    logger.info('>> Logout error')
     return {
         'status': False,
         'error': 'Logout error'
     }
-
-
-def main():
-    session = requests.Session()
-
-    try:
-        login_res = login(session)
-        if not login_res.get('status'):
-            raise Exception(login_res.get('error'))
-
-        _token = login_res.get('token')
-        _stations_data = login_res.get('stations_data')
-
-        trips_res = get_trips(
-            session,
-            datetime(2025, 4, 18),
-            get_station_by_id(_stations_data, '37500'),
-            get_station_by_id(_stations_data, '27800'),
-            _token
-        )
-        if not trips_res.get('status'):
-            raise Exception(trips_res.get('error'))
-
-        _search_data = trips_res.get('search_data')
-        _trips_data = json.loads(json.dumps(trips_res.get('trips_data')))
-
-        _trip_data = next(t['trip_data'] for t in _trips_data if int(t['available_seats']) > 0)
-
-        seats_res = get_seats(
-            session,
-            _search_data,
-            _trip_data,
-            _token
-        )
-        if not seats_res.get('status'):
-            raise Exception(seats_res.get('error'))
-
-        _layout_data = seats_res.get('layout_data')
-        _seats_data = seats_res.get('seats_data')
-        # print('\n'.join([str(s) for s in _seats_data]))
-
-        # reserve_res = reserve_by_price(
-        #     _seats_data,
-        #     int(input('Enter price of ticket to reserve: ')),
-        #     _search_data,
-        #     _trip_data,
-        #     _layout_data,
-        #     _token
-        # )
-        # if not reserve_res.get('status'):
-        #     raise Exception(reserve_res.get('error'))
-        #
-        # _booking_data = reserve_res.get('booking_data')
-        #
-        # input('Enter any character to cancel reservation: ')
-        #
-        # cancel_res = cancel(_search_data, _booking_data, _token)
-        # if not cancel_res.get('status'):
-        #     raise Exception(cancel_res.get('error'))
-    except Exception as ex:
-        print(ex)
-    finally:
-        logout(session)
-
-
-if __name__ == '__main__':
-    main()

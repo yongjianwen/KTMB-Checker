@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+
+<html lang="en" translate="no">
+<head>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=UA-175560898-1"></script>
+<script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'UA-175560898-1');
+    </script>
+<meta charset="utf-8"/>
+<meta content="en" http-equiv="Content-Language"/>
+<meta content="Book your KTMB train tickets here." name="description">
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Welcome to the KTMB Integrated Ticketing System</title>
+<script crossorigin="anonymous" integrity="sha384-vk5WoKIaW/vJyUAd9n/wmopsmNhiy+L2Z+SBxGYnUkunIxVxAv/UtMOhba/xskxh" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js">
+</script>
+<script>(window.jQuery||document.write("\u003Cscript src=\u0022/lib/jquery/jquery.min.js\u0022 crossorigin=\u0022anonymous\u0022\u003E\u003C/script\u003E"));</script>
+<script crossorigin="anonymous" integrity="sha384-jR1IKAba71QSQwPRf3TY+RAEovSBBqf4Hyp7Txom+SfpO0RCZPgXbINV+5ncw+Ph" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0/jquery.validate.min.js">
+</script>
+<script>(window.jQuery && window.jQuery.validator||document.write("\u003Cscript src=\u0022/lib/jquery-validate/jquery.validate.min.js\u0022 crossorigin=\u0022anonymous\u0022\u003E\u003C/script\u003E"));</script>
+<script crossorigin="anonymous" integrity="sha384-R3vNCHsZ+A2Lo3d5A6XNP7fdQkeswQWTIPfiYwSpEP3YV079R+93YzTeZRah7f/F" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js">
+</script>
+<script>(window.jQuery && window.jQuery.validator && window.jQuery.validator.unobtrusive||document.write("\u003Cscript src=\u0022/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js\u0022 crossorigin=\u0022anonymous\u0022\u003E\u003C/script\u003E"));</script>
+<script src="/lib/mvcfoolproof/mvcfoolproof.core.js?v=E9iQVankSq6cdmoKMW8XKrJCuGozMlzgjGOc1lwD2Dc"></script>
+<script src="/lib/mvcfoolproof/mvcfoolproof.jquery.validation.js?v=ngiJsnin5JFafEy1G4HZOLmHsLYsXCJ7cMhsYxPpoUE"></script>
+<script src="/lib/mvcfoolproof/mvcfoolproof.unobtrusive.js?v=17Kyu_CPimqNjecEAu1lyEuV2pBS9XU5ERoDEWgb-m8"></script>
+<script src="/lib/jquery-validate-mvc/jquery.validate.mvc.js?v=cTglAT-8JZlgcp1thjuHQeqF_EUHA3fMAiuOC-VJjo0"></script>
+<link href="/lib/jqueryui/jquery-ui.css?v=3Qb-9rcgEQpHtYtg_GSOnRkn5HXxv3FyxwnlGphSEv0" rel="stylesheet"/>
+<script crossorigin="anonymous" integrity="sha384-PtTRqvDhycIBU6x1wwIqnbDo8adeWIWP3AHmnrvccafo35E7oIvW7HPXn2YimvWu" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js">
+</script>
+<script>(window.jQuery.ui||document.write("\u003Cscript src=\u0022/lib/jqueryui/jquery-ui.min.js\u0022 crossorigin=\u0022anonymous\u0022\u003E\u003C/script\u003E"));</script>
+<link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" rel="stylesheet"/>
+<meta class="sr-only" content="" name="x-stylesheet-fallback-test"/><script>!function(a,b,c,d){var e,f=document,g=f.getElementsByTagName("SCRIPT"),h=g[g.length-1].previousElementSibling,i=f.defaultView&&f.defaultView.getComputedStyle?f.defaultView.getComputedStyle(h):h.currentStyle;if(i&&i[a]!==b)for(e=0;e<c.length;e++)f.write('<link href="'+c[e]+'" '+d+"/>")}("position","absolute",["/lib/bootstrap/dist/css/bootstrap.min.css"], "rel=\u0022stylesheet\u0022 crossorigin=\u0022anonymous\u0022 ");</script>
+<script crossorigin="anonymous" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js">
+</script>
+<script>($.fn.modal||document.write("\u003Cscript src=\u0022/lib/bootstrap/dist/js/bootstrap.bundle.min.js\u0022 crossorigin=\u0022anonymous\u0022\u003E\u003C/script\u003E"));</script>
+<script>$.fn.slider = null</script>
+<link href="/v3/css/bootstrap-slider.min.css?v=x9bDbiMas6C0hYvIs9ZiVeFYDkOeMDvNFe3i8Fb3Wi0" rel="stylesheet"/>
+<script src="/v3/js/bootstrap-slider.min.js?v=QNbOvfaNvJ6BG7gNkEfWwSs6ksIN4WrlXFN6toBasD4"></script>
+<script src="/lib/moment.js/moment.min.js?v=4iQZ6BVL4qNKlQ27TExEhBN1HFPvAvAMbFavKKosSWQ"></script>
+<link href="/v3/css/font-awesome.min.css?v=gg4WnOJIJAZtmXP9S2Vhqunc1tvvZDXakF1aHWSCmXw" rel="stylesheet"/>
+<script src="/v3/js/mobile.js?v=VHghnROEOQ1OacCm-IWhzR_9uQU1FMzOav1z9wWbZOk"></script>
+<link href="/v3/css/lightpick.css?v=CTP_K5hf4VHUbKhxRlpeOvATiCw6s6Akeq4Uz0OlLVY" rel="stylesheet"/>
+<script src="/v3/js/lightpick.js?v=nCFJ8WE2qffZinDgqllqk6D3r1gIT5nYbNZDQVLc52A"></script>
+<link href="/lib/file-input/file-input.min.css?v=gChuub3IiNtU0VM3NSDX-bTKlVYVBuN8r1zwooHd394" rel="stylesheet"/>
+<script src="/lib/file-input/fileinput.js?v=xWf5mf6nBTD3wZGf-i5baKz38sabupg1t9kZN6gNCC4"></script>
+<link href="/lib/select2/css/select2.min.css?v=wqKC3W2sEKP79Gm05n9Ilgh3eFTm0Ve_ESM9-6oWhR4" rel="stylesheet"/>
+<link href="/lib/select2-bootstrap4-theme/dist/select2-bootstrap4.min.css?v=J6L5BfjnEuIwj6-OSc2OBxc8-BEGW3ZTz7wDHepaayI" rel="stylesheet"/>
+<script src="/lib/select2/js/select2.min.js?v=16c3mSb2OxHyGKYVRD8ATQP8SZvBuvUNQUKxsqdsN3I"></script>
+<link href="/v3/css/nss.css?v=BZoTZDcKHycTnSLosyWHbSRBs6f57E9SkQDxk--QqMM" rel="stylesheet"/>
+<link href="/v3/css/custom.css?v=9ZBtTh0IwUZcLQS-9BqYoqk6vwqLW8fzaHkngh3o0G8" rel="stylesheet"/>
+<link href="/css/site.css?v=outa_10t1Moq0NwD-hniM3GtxH4LMt6SB3d3XAxMqWs" rel="stylesheet"/>
+<script src="/js/site.js?v=4q1jwFhaPaZgr8WAUSrux6hAuh0XDg9kPS3xIVq36I0"></script>
+<script src="/js/Ajax.js?v=Bo3LQlXulvxh8jgH9PICMJPeecry2zXSd7OSL98ibIo"></script>
+<script src="/js/Common.js?v=38Fa2JAxdCuhjKKO_HhUkw8RhqKQ1FYb8aSmF-YSxB8"></script>
+<script src="/js/Datetime.js?v=X6VsXFG1elnLSspuyOXD_CKEyHgSmZZ17cHteJnQHgQ"></script>
+<script src="/js/DynamicDropdown.js?v=scwaxjkhhzIDF02mmMgQYAP78ARUHTfoF-GBGZ6bI0c"></script>
+<script src="/js/Form.js?v=AFl28gjB6WmY2c63FCFM5OiEJ6AD8zoC5XXFMiuBRRg"></script>
+<script src="/js/Popup_v2.js?v=G_sUUCOlFLC5oz3qrDqByHF71dxim3PI-msEIJbT3VE"></script>
+<script src="/lib/bootpag/jquery.bootpag.min.js?v=UIv0OYCzZ_L5l66IwfM7heXAnujMLjEKvNmqQpAKgHs"></script>
+<link href="/favicon.ico?v=K0Aya3CUXC3mWLsOQzMJvOunW00pv69_Z8R462XdnFI" rel="icon" type="image/ico"/>
+<style type="text/css">
+        media only screen and (max-width:900px) {
+            .lightpick__day:not(.is-disabled):not(.is-start-date):hover;
+
+        {
+            background-size: contain;
+            background-image: unset;
+        }
+        }
+    </style>
+<script type="text/javascript">!function(T,l,y){var S=T.location,k="script",D="instrumentationKey",C="ingestionendpoint",I="disableExceptionTracking",E="ai.device.",b="toLowerCase",w="crossOrigin",N="POST",e="appInsightsSDK",t=y.name||"appInsights";(y.name||T[e])&&(T[e]=t);var n=T[t]||function(d){var g=!1,f=!1,m={initialize:!0,queue:[],sv:"5",version:2,config:d};function v(e,t){var n={},a="Browser";return n[E+"id"]=a[b](),n[E+"type"]=a,n["ai.operation.name"]=S&&S.pathname||"_unknown_",n["ai.internal.sdkVersion"]="javascript:snippet_"+(m.sv||m.version),{time:function(){var e=new Date;function t(e){var t=""+e;return 1===t.length&&(t="0"+t),t}return e.getUTCFullYear()+"-"+t(1+e.getUTCMonth())+"-"+t(e.getUTCDate())+"T"+t(e.getUTCHours())+":"+t(e.getUTCMinutes())+":"+t(e.getUTCSeconds())+"."+((e.getUTCMilliseconds()/1e3).toFixed(3)+"").slice(2,5)+"Z"}(),iKey:e,name:"Microsoft.ApplicationInsights."+e.replace(/-/g,"")+"."+t,sampleRate:100,tags:n,data:{baseData:{ver:2}}}}var h=d.url||y.src;if(h){function a(e){var t,n,a,i,r,o,s,c,u,p,l;g=!0,m.queue=[],f||(f=!0,t=h,s=function(){var e={},t=d.connectionString;if(t)for(var n=t.split(";"),a=0;a<n.length;a++){var i=n[a].split("=");2===i.length&&(e[i[0][b]()]=i[1])}if(!e[C]){var r=e.endpointsuffix,o=r?e.location:null;e[C]="https://"+(o?o+".":"")+"dc."+(r||"services.visualstudio.com")}return e}(),c=s[D]||d[D]||"",u=s[C],p=u?u+"/v2/track":d.endpointUrl,(l=[]).push((n="SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details)",a=t,i=p,(o=(r=v(c,"Exception")).data).baseType="ExceptionData",o.baseData.exceptions=[{typeName:"SDKLoadFailed",message:n.replace(/\./g,"-"),hasFullStack:!1,stack:n+"\nSnippet failed to load ["+a+"] -- Telemetry is disabled\nHelp Link: https://go.microsoft.com/fwlink/?linkid=2128109\nHost: "+(S&&S.pathname||"_unknown_")+"\nEndpoint: "+i,parsedStack:[]}],r)),l.push(function(e,t,n,a){var i=v(c,"Message"),r=i.data;r.baseType="MessageData";var o=r.baseData;return o.message='AI (Internal): 99 message:"'+("SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details) ("+n+")").replace(/\"/g,"")+'"',o.properties={endpoint:a},i}(0,0,t,p)),function(e,t){if(JSON){var n=T.fetch;if(n&&!y.useXhr)n(t,{method:N,body:JSON.stringify(e),mode:"cors"});else if(XMLHttpRequest){var a=new XMLHttpRequest;a.open(N,t),a.setRequestHeader("Content-type","application/json"),a.send(JSON.stringify(e))}}}(l,p))}function i(e,t){f||setTimeout(function(){!t&&m.core||a()},500)}var e=function(){var n=l.createElement(k);n.src=h;var e=y[w];return!e&&""!==e||"undefined"==n[w]||(n[w]=e),n.onload=i,n.onerror=a,n.onreadystatechange=function(e,t){"loaded"!==n.readyState&&"complete"!==n.readyState||i(0,t)},n}();y.ld<0?l.getElementsByTagName("head")[0].appendChild(e):setTimeout(function(){l.getElementsByTagName(k)[0].parentNode.appendChild(e)},y.ld||0)}try{m.cookie=l.cookie}catch(p){}function t(e){for(;e.length;)!function(t){m[t]=function(){var e=arguments;g||m.queue.push(function(){m[t].apply(m,e)})}}(e.pop())}var n="track",r="TrackPage",o="TrackEvent";t([n+"Event",n+"PageView",n+"Exception",n+"Trace",n+"DependencyData",n+"Metric",n+"PageViewPerformance","start"+r,"stop"+r,"start"+o,"stop"+o,"addTelemetryInitializer","setAuthenticatedUserContext","clearAuthenticatedUserContext","flush"]),m.SeverityLevel={Verbose:0,Information:1,Warning:2,Error:3,Critical:4};var s=(d.extensionConfig||{}).ApplicationInsightsAnalytics||{};if(!0!==d[I]&&!0!==s[I]){var c="onerror";t(["_"+c]);var u=T[c];T[c]=function(e,t,n,a,i){var r=u&&u(e,t,n,a,i);return!0!==r&&m["_"+c]({message:e,url:t,lineNumber:n,columnNumber:a,error:i}),r},d.autoExceptionInstrumented=!0}return m}(y.cfg);function a(){y.onInit&&y.onInit(n)}(T[t]=n).queue&&0===n.queue.length?(n.queue.push(a),n.trackPageView({})):a()}(window,document,{
+src: "https://js.monitor.azure.com/scripts/b/ai.2.min.js", // The SDK URL Source
+crossOrigin: "anonymous", 
+cfg: { // Application Insights Configuration
+    connectionString: 'InstrumentationKey=577f13a4-5d0f-4c25-b8a8-4253a4830609'
+}});</script></meta></head>
+<body class="back-f6f6f6">
+<div aria-hidden="true" aria-labelledby="popupModalTitle" class="modal fade" data-backdrop="static" data-keyboard="false" data-show="false" id="popupModal" role="dialog" tabindex="-1">
+<div class="modal-dialog modal modal-dialog-centered" role="document">
+<div class="modal-content">
+<div class="modal-header payment-modal-header">
+<div id="popupModalHeader"></div>
+</div>
+<div class="modal-body">
+<div class="col-md-12">
+<div class="text-secondary text-center font-14">
+<div id="popupModalBody">
+</div>
+</div>
+<div class="text-center">
+<button class="btn payment-modal-btn" id="popupModalOkButton" style="display: none" type="button">OK</button>
+<button class="btn payment-modal-btn" id="popupModalCancelButton" style="display: none" type="button">CANCEL</button>
+<button class="btn payment-modal-btn" data-dismiss="modal" id="popupModalCloseButton" style="display: none" type="button">Close</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<nav class="navbar navbar-expand-lg fixed-top navbar-light bg-theme" style="z-index: 999999997 !important;">
+<a class="navbar-brand" href="/">
+<img alt="" class="d-inline-block align-top" src="/v3/assets/logo.png?v=8u_yVkQVKb-evdEFntX96V-LlXYn7UZWF7cHTFb6kPk" width="100"/>
+</a>
+<button aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#navbarSupportedContent" data-toggle="collapse" type="button">
+<span class="navbar-toggler-icon"></span>
+</button>
+<div class="collapse navbar-collapse" id="navbarSupportedContent">
+<ul class="navbar-nav mr-auto">
+</ul>
+<ul class="navbar-nav justify-content-end p20">
+<li class="nav-item">
+<a class="nav-link" href="/">ETS/INTERCITY</a>
+</li>
+<li class="nav-item dropdown">
+<a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="navbarFileDropdown" role="button">
+        KOMUTER
+    </a>
+<div aria-labelledby="navbarFileDropdown" class="dropdown-menu">
+<a class="dropdown-item" href="/BookAFC?p=tkDIekR07o1stbTrOUFyCT24UHuw5UFn47tssfdhp4%2FEd0MZ3kajj7bA08OAjC0FQ0ynNzZKAdnVXNCmaTAO9CzoUTcipPq70PL2TNALX7NhIT2cQuL3fCVF1dJdUJ6iPZJD6OaQ9uyxj5hbvFSCKH9P%2BKbxO53AVf7eO1PryjiOVO9Wv1OwBegVXTClA3dZdUp2IazS7PFbUUH31iXSEID3Y8Px9wt05duH%2FjJi1N4dGUUiptIqTB8gdHXYIKJw05QzlNMYwnFaM4qhgEEajfT0EByND3ve70%2BxjOWDn58%3D">KOMUTER KLANG VALLEY</a>
+<a class="dropdown-item" href="/BookAFC?p=eSzs09JCTn6fHc0E%2FBC%2BdHRdOaiFWD8GzURuWwfkLjhZp3e7JpVGXA1hwhk%2FSqz94CCSX5rBsi%2BgYALrpFsCQSaiS%2BpLI9148HmOribzf1AuTT%2FVHR6DizH0fC5BSc5gbpeoAVsPkfoy%2Fq3B9uKEgPhRiNm7ohraHS80QESwILPdkuPdj%2BpMplP62rCqbS8ksAdOD%2FgcVB4SactRppa1aDBlpgsIdsqPNTYfmHjzb6QHgd9hDcrbTAtcysUB6BwIHK55uiINrFFV1r0zo75D3Q%3D%3D">KOMUTER UTARA</a>
+</div>
+</li>
+<li class="nav-item">
+<a class="nav-link" href="/Home/Shuttle">SHUTTLE TEBRAU</a>
+</li>
+<li class="nav-item dropdown">
+<a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="navbarPackageDropdown" role="button">
+        RAIL PASS
+    </a>
+<div aria-labelledby="navbarPackageDropdown" class="dropdown-menu">
+<a class="dropdown-item" href="/Account/SpecialRegistration">Special registration</a>
+<a class="dropdown-item" href="https://ktmbstorage.blob.core.windows.net/ktmb-online-live-file/HelpfulLink/MyRailLifeBorangPengesahanPelajar.pdf" target="_blank">Student verification letter</a>
+<div class="dropdown-divider"></div>
+<a class="dropdown-item" href="/BookPackage?p=24CqWKDGDxRpqlpIjQqrsgnOBLxEo8B3cNIqv1Fjd%2BuD238T%2FPPWviJSUa3mQ6oClem%2F35D2hDst9yXNdBCqUw%3D%3D">MyRailLife - Klang Valley</a>
+<a class="dropdown-item" href="/BookPackage?p=eVDBx5C1rc%2Fiz76ZP5qu4ABcKFXfm3zDz2wajY8aYW5vAWGDmBmMem8svxuhaXJffxS91ngX8f61XzczOXYCYw%3D%3D">MyRailLife - Northern</a>
+<a class="dropdown-item" href="/BookPackage?p=eX5emD9ReT%2FazYxvZ%2Fx2WyEzN4YDHR9uHlpNo4J5VV6O7UzrlhvyQgHk9gYGlcnWpsZs5in14VOHoiAG%2FOxaTQ%3D%3D">MyRailLife - Shuttle Timuran</a>
+</div>
+</li>
+<li class="nav-item">
+<a class="nav-link" href="/TimeTable/Search">MYRAILTIME</a>
+</li>
+</ul>
+<ul class="navbar-nav ml-auto text-right">
+<li class="nav-item margin-top-bottom-auto">
+<a class="nav-link text-nowrap" href="/EWallet"><i class="fa fa-cc-discover"></i>  MYR 1.50</a>
+</li>
+<li class="nav-item margin-top-bottom-auto">
+<a class="nav-link text-nowrap" href="/LoyaltyPoint">0 points</a>
+</li>
+<li class="nav-item dropdown mr-20 margin-top-bottom-auto">
+<a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="navbarFileDropdown" role="button">
+<i class="fa fa-bell"></i>
+<span class="badge badge-pill badge-warning yellow" id="navbar-unread">11</span>
+                Yong Jian Wen
+            </a>
+<div aria-labelledby="navbarFileDropdown" class="dropdown-menu dropdown-menu-right">
+<a class="dropdown-item" href="/Account/MyAccount">My account</a>
+<a class="dropdown-item" href="/Account/Logout">Logout</a>
+</div>
+</li>
+</ul>
+</div>
+</nav>
+<div class="container-fluid body plr0">
+<div class="col-md-12">
+<div class="row">
+<div class="col-md-2 col-sm-12 border-right bg-white paddlr20">
+<div class="mt10"></div>
+<b class="c8888">JOURNEY PLAN</b>
+<div class="c3737 mt10">JB SENTRAL</div>
+<div class="c8888 text-center f12">to</div>
+<div class="c3737 bb">GEMAS</div>
+<div class="row">
+<div class="col-md-6">
+<div class="dr font-weight-bold">Departure</div>
+<div class="date depart-date-input">02 May 2025</div>
+</div>
+<div class="col-md-12">
+<div class="bb"></div>
+</div>
+</div>
+<div class="mt10 text-center f12 dr font-weight-bold"> 1 Pax</div>
+<div class="mt10">
+<a class="btn mofify-btn" href="javascript:void(0);">MODIFY</a>
+</div>
+<div class="bb"></div>
+<div class="mt10">
+<b class="c8888 f14">FILTER RESULTS</b>
+</div>
+<div class="depart mt-20">
+<div>Depart</div>
+<div class="f12 c7 slider-depart-text">00:00 - 24:00</div>
+<div class="range-slider">
+<input class="span2" data-slider-max="24" data-slider-min="0" data-slider-step="1" data-slider-value="[0,24]" id="slider-depart" type="text" value=""/>
+<div class="pull-left c7 f12">00:00</div>
+<div class="pull-right c7 f12">24:00</div>
+</div>
+</div>
+</div>
+<div class="col-md-10 col-sm-12 mt10">
+<form action="/Trip" autocomplete="off" class="ticket-search ticket-search-popup" id="theForm" method="post">
+<div aria-hidden="true" aria-labelledby="validationSummaryModalTitle" class="modal fade" data-show="false" id="validationSummaryModal" role="dialog" tabindex="-1">
+<div class="modal-dialog modal modal-dialog-centered" role="document">
+<div class="modal-content">
+<div class="modal-header payment-modal-header">
+<div id="validationSummaryModalHeader"></div>
+</div>
+<div class="modal-body">
+<div class="col-md-12">
+<div class="text-secondary font-14">
+<div id="validationSummaryModalBody">
+</div>
+</div>
+<div class="text-center">
+<button class="btn payment-modal-btn" data-dismiss="modal" type="button">OK</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<input data-val="true" data-val-required="Data is invalid." id="FromStationData" name="FromStationData" type="hidden" value="9Mk7B6VFDfFLqdjaW7tJnYSQQD9qM67g4CEW3D8OGAfhn7F0yQh+AhLDFdPEY0JuNiaTkwDJxOOZ/jCrcD9zVrZEz8TmydgFxYR5OQlaJEuhrqmUh3OShK4s+8zCri9DEFXgswj7sqSEJ8eiAQgymg=="/>
+<input data-val="true" data-val-required="Data is invalid." id="ToStationData" name="ToStationData" type="hidden" value="9MbPIg7UeqJRrljHsj8mEVccWS1vUzneLUyWzRO5oeHtlPWwnRPrYRWJs8onJQFyXXf6/n7RZSLLFd7EN14z0yWZqDEgvoIhbLn89R+LgoS+5A5kCqnp0kl3mRTry7NEoMcyvisJRQwEb7Q48IiStSoH78B1N2laRvb6jKHkV6g="/>
+<input id="SearchData" name="SearchData" type="hidden" value="AXdoPjETFOgJclvqlQoIcN3MVc2XeHcHhQnOo7JgMndKEzs+oicgPz2nZH+vTVqVztuvsY5augBvecMoh7XLeC4glBG3swiRFc4yyLZSxwQrdenWXAHVIMc9RrUVCvLDrGzPaUaSO7ep1QBLoDxAKAG2piY4UXOvzjqErZ44GHxCY8R9+akTihIEXv0dQEgKdeFW2JPz2m0FMOT73WJGpDqnZgvlH7suWkZNBOt0AD3CeN+pDXEocMjG876gWbRG38XDfQan+hIxDUVhS8+fG+03TUOSJMgXHNoJdmRrmQ9xjT68Zy1fh7JX2EyRcsjf+4sfDipEx59vwisuNVWn8oA2/o4A1qekz4Oj+6ntiXBMP8+VKIn4GPPwIs07quTh"/>
+<input data-val="true" data-val-required="Data is invalid." id="FormValidationCode" name="FormValidationCode" type="hidden" value="/mQTOtXSxUJOnZs5+2qVdGo+MhfJmC7ol7hH2flcKDM89ikSaeMpv1u9AQwN/H0K7yGixPC2C2D4UjRUDekXVPoIiyyqb3gn3rTdeCLwxA5h9x13cuLt51mmDbRNaWFKmVPFUKSk3+xSW46P5kAtHw=="/>
+<input id="fixedPax" type="hidden" value="1"/>
+<input id="bookingData" type="hidden" value=""/>
+<input id="departDateTime" type="hidden" value=""/>
+<input class="FromStationId" type="hidden" value="37500"/>
+<input class="ToStationId" type="hidden" value="27800"/>
+<input class="OnwardDate" type="hidden" value="02 May 2025"/>
+<input class="ReturnDate" type="hidden" value=""/>
+<input class="PassengerCount" type="hidden" value="1"/>
+<div class="row">
+<div class="col-md-6 col-lg-3 col-sm-12">
+<label class="depart-arrival">Origin</label>
+<select class="form-control close-others" data-val="true" data-val-required="Please select origin." id="FromStationId" name="FromStationId" required="">
+<option value="">Select Origin</option>
+<optgroup label="Kedah">
+<option data-trainservices="ETS,Intercity" value="44000">ALOR SETAR</option>
+<option data-trainservices="ETS" value="44400">ANAK BUKIT</option>
+<option data-trainservices="ETS" value="42400">GURUN</option>
+<option data-trainservices="ETS,Intercity" value="41400">SUNGAI PETANI</option>
+</optgroup>
+<optgroup label="Perlis">
+<option data-trainservices="ETS,Intercity" value="45800">ARAU</option>
+<option data-trainservices="ETS,Intercity" value="47300">PADANG BESAR</option>
+</optgroup>
+<optgroup label="Pahang">
+<option data-trainservices="Intercity" value="72700">AUR GADING</option>
+<option data-trainservices="Intercity" value="72200">BUKIT BETONG</option>
+<option data-trainservices="Intercity" value="73100">CHEGAR PERAH</option>
+<option data-trainservices="Intercity" value="67900">JENDERAK</option>
+<option data-trainservices="Intercity" value="68700">JERANTUT</option>
+<option data-trainservices="Intercity" value="63700">KEMAYAN</option>
+<option data-trainservices="Intercity" value="72400">KG BERKAM</option>
+<option data-trainservices="Intercity" value="70200">KRAMBIT</option>
+<option data-trainservices="Intercity" value="67400">KUALA KRAU</option>
+<option data-trainservices="Intercity" value="71300">KUALA LIPIS</option>
+<option data-trainservices="Intercity" value="69600">MELA</option>
+<option data-trainservices="Intercity" value="64900">MENGKARAK</option>
+<option data-trainservices="Intercity" value="66100">MENTAKAB</option>
+<option data-trainservices="Intercity" value="75000">MENTARA BARU</option>
+<option data-trainservices="Intercity" value="74800">MERAPOH</option>
+<option data-trainservices="Intercity" value="71800">PADANG TUNGKU</option>
+<option data-trainservices="Intercity" value="73500">SUNGAI TEMAU</option>
+<option data-trainservices="Intercity" value="74500">TELUK GUNUNG</option>
+<option data-trainservices="Intercity" value="64400">TRIANG</option>
+</optgroup>
+<optgroup label="Perak">
+<option data-trainservices="ETS" value="2600">BAGAN SERAI</option>
+<option data-trainservices="ETS,Intercity" value="9700">BATU GAJAH</option>
+<option data-trainservices="ETS" value="14600">BEHRANG</option>
+<option data-trainservices="ETS,Intercity" value="9000">IPOH</option>
+<option data-trainservices="ETS,Intercity" value="10900">KAMPAR</option>
+<option data-trainservices="ETS,Intercity" value="6300">KUALA KANGSAR</option>
+<option data-trainservices="ETS" value="5700">PADANG RENGAS</option>
+<option data-trainservices="ETS" value="1900">PARIT BUNTAR</option>
+<option data-trainservices="ETS" value="14100">SLIM RIVER</option>
+<option data-trainservices="ETS,Intercity" value="7300">SUNGAI SIPUT</option>
+<option data-trainservices="ETS" value="12900">SUNGKAI</option>
+<option data-trainservices="ETS,Intercity" value="4700">TAIPING</option>
+<option data-trainservices="ETS,Intercity" value="15200">TANJONG MALIM</option>
+<option data-trainservices="ETS" value="11600">TAPAH ROAD</option>
+</optgroup>
+<optgroup label="Negeri Sembilan">
+<option data-trainservices="Intercity" value="61800">BAHAU</option>
+<option data-trainservices="ETS,Intercity" value="27800">GEMAS</option>
+<option data-trainservices="Intercity" value="21500">NILAI</option>
+<option data-trainservices="ETS,Intercity" value="22700">SEREMBAN</option>
+</optgroup>
+<optgroup label="Selangor">
+<option data-trainservices="ETS" value="16500">BATANG KALI</option>
+<option data-trainservices="ETS,Intercity" value="20400">KAJANG</option>
+<option data-trainservices="ERL" value="KUL">KLIA T1</option>
+<option data-trainservices="ERL" value="KL2">KLIA T2</option>
+<option data-trainservices="ETS" value="16100">KUALA KUBU BHARU</option>
+<option data-trainservices="ERL" value="PCS">PUTRAJAYA &amp; CYBERJAYA</option>
+<option data-trainservices="ETS" value="17800">RAWANG</option>
+<option data-trainservices="ERL" value="STS">SALAK TINGGI</option>
+<option data-trainservices="ETS" value="18500">SUNGAI BULOH</option>
+</optgroup>
+<optgroup label="Melaka">
+<option data-trainservices="ETS" value="26400">BATANG MELAKA</option>
+<option data-trainservices="ETS,Intercity" value="25100">PULAU SEBANG/TAMPIN</option>
+</optgroup>
+<optgroup label="WP Kuala Lumpur">
+<option data-trainservices="ETS,Intercity,ERL" value="19600">BDR TASEK SELATAN</option>
+<option data-trainservices="ETS" value="18400">KEPONG SENTRAL</option>
+<option data-trainservices="ETS,Intercity,ERL" value="19100">KL SENTRAL</option>
+<option data-trainservices="ETS" value="19000">KUALA LUMPUR</option>
+</optgroup>
+<optgroup label="Johor">
+<option data-trainservices="Intercity" value="31300">BEKOK</option>
+<option data-trainservices="Intercity" selected="selected" value="37500">JB SENTRAL</option>
+<option data-trainservices="Intercity" value="36900">KEMPAS BARU</option>
+<option data-trainservices="Intercity" value="33200">KLUANG</option>
+<option data-trainservices="Intercity" value="36000">KULAI</option>
+<option data-trainservices="Intercity" value="30500">LABIS</option>
+<option data-trainservices="Intercity" value="34800">LAYANG LAYANG</option>
+<option data-trainservices="Intercity" value="32100">PALOH</option>
+<option data-trainservices="Intercity" value="34200">RENGAM</option>
+<option data-trainservices="ETS,Intercity" value="29100">SEGAMAT</option>
+</optgroup>
+<optgroup label="Kelantan">
+<option data-trainservices="Intercity" value="77900">BERTAM</option>
+<option data-trainservices="Intercity" value="77800">BERTAM BARU</option>
+<option data-trainservices="Intercity" value="80000">BUKIT ABU</option>
+<option data-trainservices="Intercity" value="84200">BUKIT PANAU</option>
+<option data-trainservices="Intercity" value="85500">BUNUT SUSU</option>
+<option data-trainservices="Intercity" value="84800">CHICHA TINGGI</option>
+<option data-trainservices="Intercity" value="79300">DABONG</option>
+<option data-trainservices="Intercity" value="76000">GUA MUSANG</option>
+<option data-trainservices="Intercity" value="78100">JEREK BARU</option>
+<option data-trainservices="Intercity" value="78900">KEMUBU</option>
+<option data-trainservices="Intercity" value="80300">KG BARU BUKIT ABU</option>
+<option data-trainservices="Intercity" value="86000">KG KOK PASIR</option>
+<option data-trainservices="Intercity" value="77000">KG. SIRIAN</option>
+<option data-trainservices="Intercity" value="82100">KRAI</option>
+<option data-trainservices="Intercity" value="79800">KUALA GRIS</option>
+<option data-trainservices="Intercity" value="77400">LIMAU KASTURI</option>
+<option data-trainservices="Intercity" value="81200">MANEK URAI</option>
+<option data-trainservices="Intercity" value="81700">PAHI</option>
+<option data-trainservices="Intercity" value="76600">PAN MALAYAN</option>
+<option data-trainservices="Intercity" value="85100">PASIR MAS</option>
+<option data-trainservices="Intercity" value="80700">SG MENGKUANG BARU</option>
+<option data-trainservices="Intercity" value="78400">SRI BINTANG</option>
+<option data-trainservices="Intercity" value="78700">SRI JAYA</option>
+<option data-trainservices="Intercity" value="78500">SRI MAHLIGAI</option>
+<option data-trainservices="Intercity" value="84400">SUNGAI KELADI</option>
+<option data-trainservices="Intercity" value="82400">SUNGAI NAL</option>
+<option data-trainservices="Intercity" value="77200">SUNGAI SIRIAN</option>
+<option data-trainservices="Intercity" value="78300">SUNGAI TASIN</option>
+<option data-trainservices="Intercity" value="83700">TANAH MERAH</option>
+<option data-trainservices="Intercity" value="83100">TEMANGAN</option>
+<option data-trainservices="Intercity" value="84600">TO UBAN</option>
+<option data-trainservices="Intercity" value="86300">TUMPAT</option>
+<option data-trainservices="Intercity" value="80500">ULU TEMIANG</option>
+<option data-trainservices="Intercity" value="85700">WAKAF BHARU</option>
+</optgroup>
+<optgroup label="Pulau Pinang">
+<option data-trainservices="ETS,Intercity" value="600">BUKIT MERTAJAM</option>
+<option data-trainservices="ETS,Intercity" value="100">BUTTERWORTH</option>
+<option data-trainservices="ETS" value="1700">NIBONG TEBAL</option>
+<option data-trainservices="ETS" value="40500">TASEK GELUGOR</option>
+</optgroup>
+<optgroup label="Thailand">
+<option data-trainservices="Intercity" value="91000">HAT YAI</option>
+</optgroup>
+</select>
+<span class="field-validation-valid" data-valmsg-for="FromStationId" data-valmsg-replace="true" style="display: none"></span>
+<script type="text/javascript">$(function() {$("#FromStationId").tooltipValidation({ placement: "bottom" });});</script>
+<i class="fa fa-exchange web-exchange d-none d-md-block mt22" onclick="SwapFromToTerminal()" style="cursor: pointer"></i>
+</div>
+<div class="col-sm-12 d-md-none d-xs-block">
+<div class="text-center">
+<i class="fa fa-exchange mobile-exchange mt22" onclick="SwapFromToTerminal()"></i>
+</div>
+</div>
+<div class="col-md-6 col-lg-3 col-sm-12">
+<label class="depart-arrival">Destination</label>
+<select class="form-control close-others" data-val="true" data-val-required="Please select destination." id="ToStationId" name="ToStationId" required="">
+<option value="">Select Destination</option>
+<optgroup label="Kedah" style="display: none;">
+<option data-trainservices="ETS,Intercity" value="44000">ALOR SETAR</option>
+<option data-trainservices="ETS,Intercity" value="41400">SUNGAI PETANI</option>
+</optgroup>
+<optgroup label="Perlis" style="display: none;">
+<option data-trainservices="ETS,Intercity" value="45800">ARAU</option>
+<option data-trainservices="ETS,Intercity" value="47300">PADANG BESAR</option>
+</optgroup>
+<optgroup label="Pahang" style="display: none;">
+<option data-trainservices="Intercity" value="72700">AUR GADING</option>
+<option data-trainservices="Intercity" value="72200">BUKIT BETONG</option>
+<option data-trainservices="Intercity" value="73100">CHEGAR PERAH</option>
+<option data-trainservices="Intercity" value="67900">JENDERAK</option>
+<option data-trainservices="Intercity" value="68700">JERANTUT</option>
+<option data-trainservices="Intercity" value="63700">KEMAYAN</option>
+<option data-trainservices="Intercity" value="72400">KG BERKAM</option>
+<option data-trainservices="Intercity" value="70200">KRAMBIT</option>
+<option data-trainservices="Intercity" value="67400">KUALA KRAU</option>
+<option data-trainservices="Intercity" value="71300">KUALA LIPIS</option>
+<option data-trainservices="Intercity" value="69600">MELA</option>
+<option data-trainservices="Intercity" value="64900">MENGKARAK</option>
+<option data-trainservices="Intercity" value="66100">MENTAKAB</option>
+<option data-trainservices="Intercity" value="75000">MENTARA BARU</option>
+<option data-trainservices="Intercity" value="74800">MERAPOH</option>
+<option data-trainservices="Intercity" value="71800">PADANG TUNGKU</option>
+<option data-trainservices="Intercity" value="73500">SUNGAI TEMAU</option>
+<option data-trainservices="Intercity" value="74500">TELUK GUNUNG</option>
+<option data-trainservices="Intercity" value="64400">TRIANG</option>
+</optgroup>
+<optgroup label="Negeri Sembilan" style="display: none;">
+<option data-trainservices="Intercity" value="61800">BAHAU</option>
+<option data-trainservices="ETS,Intercity" selected="selected" value="27800">GEMAS</option>
+<option data-trainservices="Intercity" value="21500">NILAI</option>
+<option data-trainservices="ETS,Intercity" value="22700">SEREMBAN</option>
+</optgroup>
+<optgroup label="Perak" style="display: none;">
+<option data-trainservices="ETS,Intercity" value="9700">BATU GAJAH</option>
+<option data-trainservices="ETS,Intercity" value="9000">IPOH</option>
+<option data-trainservices="ETS,Intercity" value="10900">KAMPAR</option>
+<option data-trainservices="ETS,Intercity" value="6300">KUALA KANGSAR</option>
+<option data-trainservices="ETS,Intercity" value="7300">SUNGAI SIPUT</option>
+<option data-trainservices="ETS,Intercity" value="4700">TAIPING</option>
+<option data-trainservices="ETS,Intercity" value="15200">TANJONG MALIM</option>
+</optgroup>
+<optgroup label="WP Kuala Lumpur" style="display: none;">
+<option data-trainservices="ETS,Intercity,ERL" value="19600">BDR TASEK SELATAN</option>
+<option data-trainservices="ETS,Intercity,ERL" value="19100">KL SENTRAL</option>
+</optgroup>
+<optgroup label="Johor" style="display: none;">
+<option data-trainservices="Intercity" value="31300">BEKOK</option>
+<option data-trainservices="Intercity" value="37500">JB SENTRAL</option>
+<option data-trainservices="Intercity" value="36900">KEMPAS BARU</option>
+<option data-trainservices="Intercity" value="33200">KLUANG</option>
+<option data-trainservices="Intercity" value="36000">KULAI</option>
+<option data-trainservices="Intercity" value="30500">LABIS</option>
+<option data-trainservices="Intercity" value="34800">LAYANG LAYANG</option>
+<option data-trainservices="Intercity" value="32100">PALOH</option>
+<option data-trainservices="Intercity" value="34200">RENGAM</option>
+<option data-trainservices="ETS,Intercity" value="29100">SEGAMAT</option>
+</optgroup>
+<optgroup label="Kelantan" style="display: none;">
+<option data-trainservices="Intercity" value="77900">BERTAM</option>
+<option data-trainservices="Intercity" value="77800">BERTAM BARU</option>
+<option data-trainservices="Intercity" value="80000">BUKIT ABU</option>
+<option data-trainservices="Intercity" value="84200">BUKIT PANAU</option>
+<option data-trainservices="Intercity" value="85500">BUNUT SUSU</option>
+<option data-trainservices="Intercity" value="84800">CHICHA TINGGI</option>
+<option data-trainservices="Intercity" value="79300">DABONG</option>
+<option data-trainservices="Intercity" value="76000">GUA MUSANG</option>
+<option data-trainservices="Intercity" value="78100">JEREK BARU</option>
+<option data-trainservices="Intercity" value="78900">KEMUBU</option>
+<option data-trainservices="Intercity" value="80300">KG BARU BUKIT ABU</option>
+<option data-trainservices="Intercity" value="86000">KG KOK PASIR</option>
+<option data-trainservices="Intercity" value="77000">KG. SIRIAN</option>
+<option data-trainservices="Intercity" value="82100">KRAI</option>
+<option data-trainservices="Intercity" value="79800">KUALA GRIS</option>
+<option data-trainservices="Intercity" value="77400">LIMAU KASTURI</option>
+<option data-trainservices="Intercity" value="81200">MANEK URAI</option>
+<option data-trainservices="Intercity" value="81700">PAHI</option>
+<option data-trainservices="Intercity" value="76600">PAN MALAYAN</option>
+<option data-trainservices="Intercity" value="85100">PASIR MAS</option>
+<option data-trainservices="Intercity" value="80700">SG MENGKUANG BARU</option>
+<option data-trainservices="Intercity" value="78400">SRI BINTANG</option>
+<option data-trainservices="Intercity" value="78700">SRI JAYA</option>
+<option data-trainservices="Intercity" value="78500">SRI MAHLIGAI</option>
+<option data-trainservices="Intercity" value="84400">SUNGAI KELADI</option>
+<option data-trainservices="Intercity" value="82400">SUNGAI NAL</option>
+<option data-trainservices="Intercity" value="77200">SUNGAI SIRIAN</option>
+<option data-trainservices="Intercity" value="78300">SUNGAI TASIN</option>
+<option data-trainservices="Intercity" value="83700">TANAH MERAH</option>
+<option data-trainservices="Intercity" value="83100">TEMANGAN</option>
+<option data-trainservices="Intercity" value="84600">TO UBAN</option>
+<option data-trainservices="Intercity" value="86300">TUMPAT</option>
+<option data-trainservices="Intercity" value="80500">ULU TEMIANG</option>
+<option data-trainservices="Intercity" value="85700">WAKAF BHARU</option>
+</optgroup>
+<optgroup label="Pulau Pinang" style="display: none;">
+<option data-trainservices="ETS,Intercity" value="600">BUKIT MERTAJAM</option>
+<option data-trainservices="ETS,Intercity" value="100">BUTTERWORTH</option>
+</optgroup>
+<optgroup label="Thailand" style="display: none;">
+<option data-trainservices="Intercity" value="91000">HAT YAI</option>
+</optgroup>
+<optgroup label="Selangor" style="display: none;">
+<option data-trainservices="ETS,Intercity" value="20400">KAJANG</option>
+<option data-trainservices="ERL" value="KUL">KLIA T1</option>
+<option data-trainservices="ERL" value="KL2">KLIA T2</option>
+<option data-trainservices="ERL" value="PCS">PUTRAJAYA &amp; CYBERJAYA</option>
+<option data-trainservices="ERL" value="STS">SALAK TINGGI</option>
+</optgroup>
+<optgroup label="Melaka" style="display: none;">
+<option data-trainservices="ETS,Intercity" value="25100">PULAU SEBANG/TAMPIN</option>
+</optgroup>
+</select>
+<span class="field-validation-valid" data-valmsg-for="ToStationId" data-valmsg-replace="true" style="display: none"></span>
+<script type="text/javascript">$(function() {$("#ToStationId").tooltipValidation({ placement: "bottom" });});</script>
+</div>
+<div class="col-sm-12 d-md-none d-xs-block">
+<div style="margin-bottom: 10px"></div>
+</div>
+<div class="col-md-12 col-lg-6 col-sm-12 mt-10">
+<div class="row">
+<div class="col-md-6 col-sm-12 col-lg-4 mt-10">
+<label class="depart-arrival">Departure date</label>
+<input class="close-others form-control text-center bg-white depart-date-input" data-rule-isdate="true" data-val="true" data-val-required="Please select departing date." id="OnwardDate" name="OnwardDate" placeholder="Depart" readonly="" type="text" value="2 May 2025"/>
+<span class="field-validation-valid" data-valmsg-for="OnwardDate" data-valmsg-replace="true" style="display: none"></span>
+<script type="text/javascript">$(function() {$("#OnwardDate").tooltipValidation({ placement: "bottom" });});</script>
+</div>
+<div class="col-md-6 col-sm-12 col-lg-4 mt-10">
+<div class="clearfix d-md-none d-xs-block"></div>
+<label class="depart-arrival">Return date</label>
+<input class="close-others form-control text-center bg-white return-date-input" data-rule-isdate="true" id="ReturnDate" name="ReturnDate" placeholder="Return" readonly="" type="text" value=""/>
+<span class="field-validation-valid" data-valmsg-for="ReturnDate" data-valmsg-replace="true" style="display: none"></span>
+<script type="text/javascript">$(function() {$("#ReturnDate").tooltipValidation({ placement: "bottom" });});</script>
+</div>
+<div class="col-md-6 col-sm-12 col-lg-4 mt-10">
+<div class="dropdown pax-dropdown2">
+<label class="depart-arrival">Pax</label>
+<select class="form-control text-center" data-val="true" data-val-range="Number of passenger is invalid." data-val-range-max="99" data-val-range-min="1" data-val-required="The PassengerCount field is required." id="PassengerCount" max="99" min="1" name="PassengerCount" required="">
+<option selected="selected" value="1">1 Pax</option>
+<option value="2">2 Pax</option>
+<option value="3">3 Pax</option>
+<option value="4">4 Pax</option>
+<option value="5">5 Pax</option>
+<option value="6">6 Pax</option>
+<option value="7">7 Pax</option>
+<option value="8">8 Pax</option>
+</select>
+<span class="field-validation-valid" data-valmsg-for="PassengerCount" data-valmsg-replace="true" style="display: none"></span>
+<script type="text/javascript">$(function() {$("#PassengerCount").tooltipValidation({ placement: "bottom" });});</script>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="row mt10">
+<div class="col-md-8 text-white pt-8">
+<i class="fa fa-warning cf8"></i>
+<span class="f12">By modifying the journey plan, all previously selected seats will be released</span>
+</div>
+<div class="col-md-4 text-right">
+<a class="btn cancel-search-btn text-dark" href="javascript:void(0);">CANCEL</a>
+<button class="btn tsbtn text-dark" id="btnSubmit" type="button">SEARCH</button>
+</div>
+</div>
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8GTxcLobJOdMluUqv_adhBVVVLV3aA0usHh72pm5Ut58SUcfoyTz09FNvt6yLrSaYmWUCo6L5UMOYNEbF4tImh1xHB8GSj4tLoSv0YvEG54ruvLn4b_dFZNzeGWQx0jK7NCLDfJw27FrVPfMrJ6YMWie9-l55mH56g3OB-NXDHJJY_1SYxndYEnzjAQO1mNXjQ"/></form>
+<div class="DepartSection">
+</div>
+<div class="ReturnSection">
+</div>
+<div class="confirmation-section">
+<button class="btn reset-btn btn-reset hide">RESET</button>
+<button class="btn proceed-btn btn-passenger hide">PROCEED TO PASSENGER DETAILS</button>
+</div>
+</div>
+</div>
+</div>
+<div aria-hidden="true" aria-labelledby="exampleModalCenterTitle" class="modal fade" data-backdrop="static" data-keyboard="false" id="seatSelect" role="dialog" style="z-index: 999999998 !important;" tabindex="-1">
+</div>
+</div>
+<form action="/Book" id="frmPassenger" method="post">
+<input class="BookingData" name="BookingData" type="hidden">
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8GTxcLobJOdMluUqv_adhBVVVLV3aA0usHh72pm5Ut58SUcfoyTz09FNvt6yLrSaYmWUCo6L5UMOYNEbF4tImh1xHB8GSj4tLoSv0YvEG54ruvLn4b_dFZNzeGWQx0jK7NCLDfJw27FrVPfMrJ6YMWie9-l55mH56g3OB-NXDHJJY_1SYxndYEnzjAQO1mNXjQ"/></input></form>
+<input id="GetTripTokenUrl" type="hidden" value="/Trip/GetTripToken?t=638812545720118619"/>
+<input id="TripTripUrl" type="hidden" value="/Trip/Trip"/>
+<input id="TripLayoutUrl" type="hidden" value="/Trip/LayoutV2"/>
+<input id="TripReserveUrl" type="hidden" value="/Trip/Reserve"/>
+<input id="BookCancelUrl" type="hidden" value="/Book/Cancel"/>
+<input id="TripLoginUrl" type="hidden" value="/Trip/Login"/>
+<input id="ChangeDateMessage" type="hidden" value="By selecting new date, your existing seats selected will be release. Are you sure to continue?"/>
+<input id="ErrorWhenCancellingBookingMessage" type="hidden" value="Error when cancelling booking. Please try again later."/>
+<input id="MaximumSeatShouldBeSelectedMessage" type="hidden" value="Maximum 1 seat(s) should be selected."/>
+<input id="ReturnTripMustNotLaterParamMessage" type="hidden" value="Return trip must not later than {0}."/>
+<input id="PleaseSelectYourSeatsLabel" type="hidden" value="Please select your seat(s)"/>
+<input id="AllServicesLabel" type="hidden" value="All Services"/>
+<input id="BlockedLabel" type="hidden" value="Blocked"/>
+<input id="CancelCapLabel" type="hidden" value="CANCEL"/>
+<input id="CoachLabel" type="hidden" value="Coach"/>
+<input id="ConfirmSeatsCapLabel" type="hidden" value="CONFIRM SEATS"/>
+<input id="DescriptionLabel" type="hidden" value="Description"/>
+<input id="FareLabel" type="hidden" value="Fare"/>
+<input id="NoLabel" type="hidden" value="No"/>
+<input id="NormalLabel" type="hidden" value="Normal"/>
+<input id="ReselectLabel" type="hidden" value="RESELECT"/>
+<input id="ReservedLabel" type="hidden" value="Reserved"/>
+<input id="SeatLabel" type="hidden" value="Seat"/>
+<input id="SelectSeatsLabel" type="hidden" value="Select seats"/>
+<input id="ForNextTrainLabel" type="hidden" value="for next train"/>
+<input id="SelectedLabel" type="hidden" value="Selected"/>
+<input id="SelectSeatLabel" type="hidden" value="select seat"/>
+<input id="SoldLabel" type="hidden" value="Sold"/>
+<input id="SoldFemaleLabel" type="hidden" value="Sold Female"/>
+<input id="SoldMaleLabel" type="hidden" value="Sold Male"/>
+<input id="YesLabel" type="hidden" value="Yes"/>
+<style type="text/css">
+    .trip-date-selection tr th {
+        cursor: pointer;
+    }
+</style>
+<footer class="pb-2">
+<div class="container">
+<div class="row">
+<div class="col-12 col-md-4 order-md-2 pt-4 copyrights">
+<div class="f16">Helpful Links</div>
+<div><a class="text-light" href="https://ktmbstorage.blob.core.windows.net/ktmb-online-live-file/HelpfulLink/TakafulProductDisclosure.pdf?v=2c335e2f-9f50-4895-b62b-4857b72fe597" target="_blank">Takaful Product Disclosure</a></div>
+<div><a class="text-light" href="https://ktmbstorage.blob.core.windows.net/ktmb-online-live-file/HelpfulLink/TakafulFAQ.pdf?v=2c335e2f-9f50-4895-b62b-4857b72fe597" target="_blank">Takaful FAQ</a></div>
+<div><a class="text-light" href="https://ktmbstorage.blob.core.windows.net/ktmb-online-live-file/HelpfulLink/KITSFAQ.pdf?v=2c335e2f-9f50-4895-b62b-4857b72fe597" target="_blank">KITS FAQ</a></div>
+<div><a class="text-light" href="https://online.ktmb.com.my/Home/ShuttleFAQ" target="_self">Shuttle Tebrau FAQ</a></div>
+<div><a class="text-light" href="https://www.ktmb.com.my/assets/pdf/2022/customer_privacy_policy.pdf?v=638812224000000000" target="_blank">Privacy Policy</a></div>
+<div><a class="text-light" href="https://ktmbstorage.blob.core.windows.net/ktmb-online-live-file/HelpfulLink/TermsAndConditions.pdf?v=2c335e2f-9f50-4895-b62b-4857b72fe597" target="_blank">ETS &amp; Intercity terms and conditions</a></div>
+<div><a class="text-light" href="https://ktmbstorage.blob.core.windows.net/ktmb-online-live-file/HelpfulLink/KomuterTermsAndConditions.pdf?v=2c335e2f-9f50-4895-b62b-4857b72fe597" target="_blank">Komuter terms and conditions</a></div>
+<div><a class="text-light" href="https://ktmbstorage.blob.core.windows.net/ktmb-online-live-file/HelpfulLink/MyDebitFAQ.pdf?v=2c335e2f-9f50-4895-b62b-4857b72fe597" target="_blank">MyDebit FAQ</a></div>
+<div><a class="text-light" href="https://ktmbstorage.blob.core.windows.net/ktmb-online-live-file/HelpfulLink/PrebookMealFAQ.pdf?v=2c335e2f-9f50-4895-b62b-4857b72fe597" target="_blank">Meal FAQ</a></div>
+<div><a class="text-light" href="https://ktmbstorage.blob.core.windows.net/ktmb-online-live-file/HelpfulLink/ERLFAQ.pdf?v=2c335e2f-9f50-4895-b62b-4857b72fe597" target="_blank">KTMB &amp; ERL integrated ticket</a></div>
+<div><a class="text-light" href="https://www.ktmb.com.my/refund_m.html" target="_blank">Refund &amp; Feedback</a></div>
+</div>
+<div class="col-12 col-md-4 order-md-1 pt-4 copyrights">
+<img alt="" src="/v3/assets/logo.png?v=8u_yVkQVKb-evdEFntX96V-LlXYn7UZWF7cHTFb6kPk"/>
+<div> </div>
+<div>Copyright 2025 By KTM Berhad</div>
+<div><a class="text-light" href="http://www.nssit.com.my" target="_blank">Powered by NSSIT</a></div>
+</div>
+<div class="col-12 col-md-4 order-md-3 pt-4 copyrights">
+<div>
+<span>Legal and Secretarial Services Unit,</span><br/>
+<span>2nd Floor, KTMB Corporate Headquarters,</span><br/>
+<span>Jalan Sultan Hishamuddin,</span><br/>
+<span>50621 Wilayah Persekutuan,</span><br/>
+<span>Kuala Lumpur.</span><br/>
+<span>Call Center +603 - 9779 1200</span><br/>
+<span>Email: callcenter@ktmb.com.my</span><br/>
+</div>
+</div>
+</div>
+</div>
+</footer>
+<script src="/js/Home/Index_v3.js?v=N2wPR0KXRoqjDD_dQMs6FrXmJKd79_dNbd_GaCCY5AQ"></script>
+<script src="/js/Trip/Index.js?v=ESxhOLIX0GGr6fiOe1Vitaa2JP9XYjiL0xB3bqHiCPE"></script>
+<script src="/js/Trip/Layout.js?v=4OGJyqqX6u8y_vx2B3fnXMcNPeGek5ujr3aQh5aYerM"></script>
+<script type="text/javascript">
+        //List Of all the Id and info needed
+        var id_form = "#theForm";
+        var id_onwardDate = "OnwardDate";
+        var id_returnDate = "ReturnDate";
+        var id_fromStationId ="#FromStationId";
+        var id_toStationId = "#ToStationId";
+        var id_fromStationData ="#FromStationData";
+        var id_toStationData = "#ToStationData";
+        var id_formValidationCode = "#FormValidationCode";
+        var id_formSearchData = "#SearchData";
+        var id_GetTripTokenUrl = "#GetTripTokenUrl";
+        var id_TripTripUrl = "#TripTripUrl";
+        var id_TripLayoutUrl = "#TripLayoutUrl";
+        var id_TripLoginUrl = "#TripLoginUrl";
+        var id_TripReserveUrl = "#TripReserveUrl";
+        var id_BookCancelUrl = "#BookCancelUrl";
+        var id_ReselectLabel = "#ReselectLabel";
+        var id_SelectSeatsLabel = "#SelectSeatsLabel";
+        var id_ForNextTrainLabel = "#ForNextTrainLabel";
+        var id_ChangeDateMessage = "#ChangeDateMessage";
+        var id_ErrorWhenCancellingBookingMessage = "#ErrorWhenCancellingBookingMessage";
+        var id_MaximumSeatShouldBeSelectedMessage = "#MaximumSeatShouldBeSelectedMessage";
+        var id_NoLabel = "#NoLabel";
+        var id_YesLabel = "#YesLabel";
+
+        var minimumDate = moment("2025-04-26");
+        var maximumDate = moment("2026-12-31");
+        var lightPickDateJsFormat = "D MMM YYYY";
+        var defaultStartDate = "02 May 2025";
+        var defaultEndDate = "";
+        var jsStations = [{"Id":"44000","StationData":"5JYVNY\u002BZvioSxs\u002B\u002BXakrsOCj612vhvOIfbpRPi0Kv/mnyZXNCpHfdnW\u002BlFzSo62yiDOYzwXw54JqsH5me2IrvoP1eZA2e/vWMll28LYG\u002BzQqJ\u002BbEO\u002B4ji6j5zRWev6wldXl8ixKRT51iN2DIe/umCFuiEx2A/kyuHPsnWCIZG6c="},{"Id":"44400","StationData":"f8MBXET2lDfFosUso/32hnEi3cmiu95V1/W5RiXwRndSziPrRxQJlSGuPe8BgwnCv0JLCknSAvhB8shjsQBz2yuoLAaGQApNCojqUMVpQbU41t8tqonqnLPKZ9sG8/UfyhF7upbZdO9J36b0THCCbQ=="},{"Id":"45800","StationData":"SbgUrz3ykK\u002BlPcNKaA6dJuGHOpmU1HRXM78eLlQps\u002BS30KdNSy/BVin6BVs19nnlp5cojmCjgWUYLvALIM4pRRZYDbfAC8KjJTmUlErIu0iSv4DEuqEbsvNVjotwdC51xjQpuiWbShRUzMnlYKcV55srVi6UGHzAtrk6l1JA/9Q="},{"Id":"72700","StationData":"9FGhN/x\u002B\u002BBHpM71RZ0XeXgdSsNHHhs18\u002Bz5DY/Ic6h6ObwZwChgk82ve9D4hgCcwXuvC\u002B8cZw/7L6aTk11M5aL3nIRTeBotgiCau12W8m5NcQ48lw8eB0LLUbAua3pTOUAwacLm3223vOZrSGp\u002B6XA=="},{"Id":"2600","StationData":"mKAXfq\u002BaCAG3MvGu5XREs4x2Euz4XKKUb5AmJ\u002BEDeQily9wQGQ0d3s8d2tZu15aFGrWVVCoivgoZRcKyRE4gl4miyr9fd84MzlminjvDFDbCl9KQUf/NryY0jjCVyU7ITxi\u002BMS/3BtPBYUWU2xqp2w=="},{"Id":"61800","StationData":"N4BgJjGMofvW/bW\u002Bb6qCn\u002BFxnPu\u002BOLNG4FjSBzBp51cfOyh1KduRPSeiFjJC0xfj0gOVO8pniRxLozl2ij9xjR8WbqB/20QPnooQHeZ/kGxCD1G4xTLICtc1Le0B1/RIM90EqwFLjSQdYMmrFijZ9A=="},{"Id":"16500","StationData":"pwIzNwk0N5v\u002BKIIsoNMbvvlrINXnRbWZ2Jams\u002Bl5GhVTJbyJqdzGpp1RjfVOzpBJS0R6XpVbnKMIJHJ4MGPxlUuQSaxe8rqyRrdHkY\u002BbF1qzbJHmKWaO/K5Fh\u002BfcSZX1GrfC8a/A5tQQDR06JAVXXw=="},{"Id":"26400","StationData":"N2pGLh4WNl5zDcXwFvvujLG/ndEP7qC8JTndOP3BjYml75aSWdjPVsH1RmJJUHolo8co2252kPVf3J8D9YJXFWy8OpDhp1FhjPdScCxytYJk\u002BG6/d/v1y\u002B5ITF3dlnksry0NQNSUHH2Co\u002BxjzW8Cqw=="},{"Id":"9700","StationData":"7cEUdrDdq0XS9VifqryI7IlUR4LWgULRiwnE3wwUCbCtk1nUiCkVILgp0NBogkjVG/SfElvSNY4ZblIP0wOUod3WzsgszScCFogoWN/aF3gTf0TVusmSFhSFBR4UwmqrfjagJTqvc6\u002Blq3ncxCzK17L4oG4euvdEr9R6M7ZllZw="},{"Id":"19600","StationData":"ubIMHKjFIdki\u002BNuYABD9VbUNq6M50FrploeFhE8Fopo7boN8OPd8D4XsTg6DXpwFoRjAI1f4VurF0TKUz7anobcPl/u4pxnAcXerUk51KQNK3CwWkeMelaWg2IJjSu\u002BQXFnPYru6caX3IdisYm9mvYhHsb6FehgUy2OJDcNUpV0b1t2cuOpH3HJQE43aOFuy9NDzm5KdgPthQc1z278Htw=="},{"Id":"14600","StationData":"GzeUcGKGi1CLRhsW9zFlYrNn6bM\u002BeDZCKoDS\u002BzTbP5IBat7idBzmuIww5plfzCwk64TbF25CHgknVcQaPRgD78mgUi8ND\u002B9h/fuLoemNMJE6p4BSV46kLF96IB8fqxfT3mc1UDMOjhofL8eB53nmvw=="},{"Id":"31300","StationData":"9OB2j6wpmt3TTRJ\u002BM1auPXY4uPt0yQ3HT\u002BDkCD0/dbZPqfDJBm3p0XghiiwM6Hc8uzgTVP/03T4Sot4WrM5svq4rmmkkqgn3K1ZTp3flr7Ea6OCDmH3E6THRgFQZqS1RHce7G51fS2iYyIdNVxSX/g=="},{"Id":"77900","StationData":"mMnJvKxHfpsPxi4Q/zANVe0jVLQBbJk2qpGjd6qAHOR26PMos7C/6Lm\u002BvyQn6dZV6T\u002B\u002BJ\u002BotSsef/kcovwoR9TGTeiKbfNT20YAx1HdF1EXfmlDmm8CnTk12RUaE7IhDl/rGTeB9NFitRspZmH5iIA=="},{"Id":"77800","StationData":"nXliMDD3kuMpvVZdY/baNlexpiR2EZnKV7D9STS5tSec2SJHcn8hHhCkLJn8BYqa/zWsmtNIMVfhT0c7RjTXYO1tulTsGLKRxZJ/oEFYkoee1z7Pmk6jn10XZDMPGPWNkPKvH66JBCnI7Q\u002BMkDIWIw=="},{"Id":"80000","StationData":"nBohwIhnv2M28z0kcXLc5xnvl4/yh7jIMO\u002BzQGc5967hkRjs6mOtNbD/NpJRZm3gGImgdaIdMfs\u002BY36l4Rcx0t1DeCRx7JtFjlxNb5vwTJcfhc5yEJgCwFsrnpIAEEN5SDZdx3bY8ZpUv7lVibRVZQ=="},{"Id":"72200","StationData":"/RMxcg/O1g7rlkpe7hAq7gL27sTxk38hjMnavTViEzCLaQtytrTWwngLBtNjUxC/YLuOOq7eFLj50jhZD2JX\u002BItx24nx7fYqP6HfGFRnn/zOsq370hiPPRpl5imLXE/yzKcDWt8warWGbrqQC1OlxA=="},{"Id":"600","StationData":"nFZiqiPM2Vh6Z2S2rie2aFMvbSCeuynfPS7VoRSc2e425pKWD23CbxuXrGoExQVOYK2CEvmolREATySlqVQTjCDcL6N2G0NzZtxyowffhw2Wo8zyMGNNegljxRh8mPNhprVIYOhMZbDi/HbAISjT97699QAWOjq/wxBw5dQH1q8="},{"Id":"84200","StationData":"y5nDcB4OHh0GG3tA7XJnm3HDV1KssPv7NZL6ZFhY5wLri2591e6M1YkMPn7UuUhr\u002BAb7Pqy5\u002BcPTUcBiXKKcJrtAqhOoXQfh1SwXQEfXSa3VPf57UtXDUJGjJji\u002BzluNvstCulOOBY4yYzb\u002B3INmlA=="},{"Id":"85500","StationData":"rZJT0IkDrwCrI8b4D3Arg2HZfhwFgAr7dnPrbjP91aw3OAVydBs1tRB2nK\u002B3AijjeapIxP8Jj5BRh06tggPgT4tKqiUQzuUUT6h1kqDJF/Nc/s/lstPMOIbxBc8BQyfYab9lwiCc1Vrwh/pL5TuHyw=="},{"Id":"100","StationData":"CoNjJKgkDmtiUpyFPxbVaLyfCpA66jD9rhykAWpefWP1TSFaG6y/5LZvJRNnPJRHOyp8YZQg4DPUWu2KiVo0bmxYgf9h/\u002B\u002BDHAT8BsaTlYuADMBnMtRh6LFNP7gmZmd5epVJ8UgxP6bgB6c13L08dJ3EqiKDURWPRXZNZqDxEf8="},{"Id":"73100","StationData":"\u002BtwKrA7OMwMVpz7bOYFRlPvyGbEQmm7AFdERBOMLtP7H1UjwbIPPe\u002BPn\u002BhFHrVVkL/Xto70mnAT4bN1MWzRgnNunWkJkhTTIZytUnhq1ig5X0r3sWiLAitxJRe0AEQpayDH19Uw4NHWgTKuf/KCJZQ=="},{"Id":"84800","StationData":"TmPLOw0P2EZbuzob0nIqNijWtCxC6QDvZdFBSHouM9\u002BYJEBA3WfTNThPD45xl8pP1ubrjSuvE3ZYnUcJRr7o8OqZWDMb5u\u002BTZCt0L\u002Bw4QO9Gw1QjRGDn9OwADcSrS9WwPa43m7OIbOEPcdymG9wPmQ=="},{"Id":"79300","StationData":"Rq026ia\u002Bc9hxBx7q9UouLhzWVRsR\u002BVU2zABB0OgXhHCK/c5DVDSvRcTPhBDR8R\u002B9ATC7ciHGneW8j8k0XdMXvGjWBRpIf2MnddFFhwTfvFSuJBXQPPVg925oYAdukctSMFqMceWN6AzEfPo8Ku0eag=="},{"Id":"27800","StationData":"QptGsKCv7QXdvmxiQw2qeH2LnSI0PEEIOlmIpW0wXl2iGLUjGuDr4LJ0tihaCP5CVBSUzVtWpwgiQhhS5wYzri891XJzkboXPvYUvAhsZFUlVlLYQvU0H7tnQtz6ZjsEfbaBUWqajdjodP631ntbYlHMR6bWfTmxgFjlD\u002BiVy5s="},{"Id":"76000","StationData":"7AICfH9UVf/i\u002BcqI/y312vaU0mzCGm4tOcLtOrenEc9PEDeacNHkug7ZBRkjOrO9A72aBuptqA/WevC/QWzZ3vp1kStzpRvQUq4wuZotAisWlq81GicA7vqYA1R\u002BFK5Lp7zEJG60tjkyix\u002B8GxkPJQ=="},{"Id":"42400","StationData":"V882/MFqGDRz26trLs1vRT2z3DFFkzaPOiFsuhefW03N8iw87xibIgSA6sl3gRkWru624G8fJGc7WyB7UzOMx8bj531Sr3p2YM/Oilsdw/1lx7/C/V6Uj9qVKcI87Kcx"},{"Id":"91000","StationData":"DSMpNXwfookF0X83aJuvuFv7FkLxEbYA4jStFS5TXZPbc2MyTM5uUDSvKxV0UBbGlsIg9n0cmLXgmhfxRZKn8VJAICeRnqurMWPQfpeMmoR0C5pPH9XwN2xaY\u002BFDH6ErVgbEbDYcHjpdX8NGDJguvw=="},{"Id":"9000","StationData":"Aq8c7dc1m9PWXCqrqq2fBw9zylGXACut8vaDFXOEeZrodFMHY0D9SHwJ5KgNqtjeI2xuWchy/tyPfTt1zHdLfKdPGD3WHBBR6VaTi380VmnW14OGBddJpsH9xycqGqSggo\u002B/kFqdj\u002BpKYXIR\u002B3nptlH9vqGSz/QSAFRSMm9GYQQ="},{"Id":"37500","StationData":"qW6Iyxy6tPrn0BZFfatGuSd23/7i/N8G1LP71vi9M8v3OfTbQfJsthyK4mCysPt6FO3mUsnKwTEzbEqZqyzMJKt0dR0J7TauBtSsrML\u002BsPBIbunT2zIrCpgOwI/pTWqGYYHk8/busAhgPEAawRB0BQ=="},{"Id":"67900","StationData":"S4LHKg6TEFBzoHuKWYitgMD5K/hSzlaaCMyiMc7pzazdWDr1rtLlUziPalbNYSY/cmn4LccoLzbaslbdr2AMNtPb2s71jZ0QaL0fC9SH4mX5vNik84veyqvJUaENJKE008L7UFEDyqvfwieyQmmlzw=="},{"Id":"68700","StationData":"KmGI1yW5iR8vx9NIsIa3P/4YY1T66NHRh3jHB7Qoj1gdfKbpcEuZooKYDuGOoJg0ofdwAvJ6aUU1SMVTrHwvmJLtsE6uQryRLpxW\u002BBKqWQKqwDYW3K91pz4DW0bbSyBU31qNLSkLzDIWvPiaIwNhdQ=="},{"Id":"78100","StationData":"g3RTtBYN9JAZnaEy5XTxs8GU2vTuOUGc9SK5T5xam\u002BhtN8w84Nni2fU/pt5ml51jmc/XtReVRlb3f45Dfhx0JE\u002BWdR6c1NGwvpAEKi\u002Biui9RbP62rCVupC1YOC7s6tMVjU\u002BscJKwS8IGB1RN0Y3cXg=="},{"Id":"20400","StationData":"xJ5tfhIalEZV2lPooTP0iwcqNZC74yKtn4DCMKFlfLklOC8\u002BBqSmu7c6eRUB173c9C9HyZe46KIlH6e1Tz38AWq0o7CJUfZLoPBHbMICEUng9aPoQjZyFLeyUazO7H/BLezVR8OgqRV1mZCBkcBSmF6NBRhU5yrcYFK06CpFqcc="},{"Id":"10900","StationData":"KAflZZDmjSC48HtahKlNdqdIZ7SnHcWUw29B\u002B7zBxMNBcpiMih5BdrJ4lJOdaM6KYH\u002Bk5PqJYKxYFqS8qgQ/2eP3jXHS6gZ5VcWfguJNYu1EBksrY01GASSKcS\u002BCeXqycBnLhcJ8OHH0tHBlI\u002Brqq3x26ncP8Xisomyb0MOgXoo="},{"Id":"63700","StationData":"C0UxJk0cII4z\u002Bgee7XT9MN2Y2MqhzgXPVtOjZvoHIGZmgRtDPRNlRDQbF0K/Nt8m4kG\u002BJpi4iCnvHNILPlw2QHWGvbbrkpZyF7uo8mIks14LCz5lJpLKAhetxX/Xrbm2MyCavwxTmlPpzXyqPAXvdg=="},{"Id":"36900","StationData":"1xg//hJ1uumfVsqRjmDSygX0r56yhQKDcamrGIsVz6TmG6rC0dh89SY2LHEuhQdTycxuRqUBIIjLfH7lXLlAgIzSHQZepLp7hOIeJ4\u002B6QXJgL2zjwwbQ4GJ9QNGVIKSLCxwp6OIYgNkJTjT0mm2IEg=="},{"Id":"78900","StationData":"aR1uIQojuVRbruzYNAHQK72Tt07Fu7e3MaYS6YKC1DvqQJBRAGGJZXBAe6d4rHZRqotp5WCRbVmUbtBoOSNXfzeiKbJuMW7FgLeucgGgpKEi3s4akqm3DHx7IcLuDU0Y9zvyg754HKKI0zMOGfz8KA=="},{"Id":"18400","StationData":"VQayG7\u002B3yk7xGUABpqBZyw1DKWhYQUCoXIUXxj7QPVj0wSLBt9El4Ieff97U89NYzWBDDWKA2\u002B5d\u002BCAEeqlF/8FmrGH41ofvHDccklWTaPaEPAXj2odn3WyZ\u002BWR7GcxqNS34vHIqYiuf6TqPldoStA=="},{"Id":"80300","StationData":"icWMxJ3amGN2mhQ3Txvpq2Hr6S4cBnCSO6K9ogeqZNOuVOrQXqrBnjD546W4S1ENQGz9a8Xb1dLSBo8p7PcIuS4BpgSK8tdvPs1FtDwJHQhD49oMT5H99fF\u002BfBkqG5XnsG4WqXAT6AEaV09vMleYJvwwg4BqedRXK4BhB1b\u002BMcg="},{"Id":"72400","StationData":"amS3hxb27vhG87LTro0V8wVpJZ/h\u002BxZeRrFO58gGmuPZBbpOnA92T/K\u002BGklHBjyN6adWPGooI0b8loTtyE\u002BhYbeMucINP8yuezGajSYw3K/pmNQTdlAEhUKujVouoY5aGWTelC0wUp8hWyemJwrSyg=="},{"Id":"86000","StationData":"IPpiCGo/XRtOSsXs9QuNC2akSSfYv57FyaPxVuRe4OQkQky0PhV7p4paZDRLYDwaQap9OB/4PIGPM0a1BrjIMV\u002BTEAcioNoX/pv\u002BHhdp4FoXzxDEARexI6/KAr/uz4hZIelAVn8qLNYEQBKOivEyXg=="},{"Id":"77000","StationData":"cPPOhkpYvmTSEuY2fF4llDwrpvDmT5bQ95gJvPYR3Gid/MjlW66ZS\u002BpJs\u002Bv85FiuZhgCvQaVHrK4TAyrkdd/9fzFqf726wu2a27GX0hO/e1e0YCeN99zCteP/weA8uaJW1zeYcZQLKVJTLpdjucmvA=="},{"Id":"19100","StationData":"hpQRrPydwonGkOh3sUmKgx63ldK4tvASahw7VP9xrAT5Gmm4cCuvBVS5WuaJXypO80Yz/LVgrQUqkuIHqyI4fTAF/J\u002BMXUHulbOzTZ5jEb4ZZx6SIV27CqrJegfkNostVQZnYMNFVKP48bb8a/KNwxQDW0zggP\u002Bjt9\u002BqLmAeNlJuu\u002B3nz6lTtFEfWe56mwyDRT3\u002B7iX5vRE9SiRpvys18A=="},{"Id":"KUL","StationData":"tdVu3UXLzB4eWDhRaFGcq8wQ/3YWbCV/SpjlUga/ApzRts3vrfNp/9sEJ0YJNIvV3Xd7IppC3P8FsSgv4C/TKWqgvtmaIk0I2BNZNlEHsBvck/AOsVhUxdkI28zKqNbTf0uAx466pGg4iMr4MRffkQ=="},{"Id":"KL2","StationData":"V8JIzOSoxLAri60Sv/LdBg9jLjDBV7kcCNqkfFNIUo8bfdTx6fZYNFW/zOoOHOj7PQ78gyPHHTgY7F0RFB/PLgko6qOkaneqSvtCTQS2QEWEp6tGdTOOS93aIRQ8iLjPk8PucU9zCiDXR0rJi9WSZw=="},{"Id":"33200","StationData":"XxWecVQOmhdzYRZoQRNhQMRflEfzeHh/hzp68q2nGqaKz8hJO7zYi8jKpYcFTYydSCk1QxXlP5n8qQZmHVV5wiNqPNM\u002BSEmhnjVM/0rD52xiDtNoCLIkLC8fKAkC1mezHC7QU95UNX7hqZRxHAKUkA=="},{"Id":"82100","StationData":"MsdCKB1CfLC8CAW75SLEzwFN2g/5CcwSKSZVpJH2RHrCDyNdGxUF\u002BQeFw1GePset1hjJh/cD2cwzBmpyM1EkCfzpZhC5aOnX40dhCLfHSrmjnyGbpBX1v17b5XKl2N6daP63nwOJqRo0E0QVfu9mNw=="},{"Id":"70200","StationData":"3XmQT1BCrdzqIxS0sKomChgGRU8/6StegHO/vi5GI76TH9AqnUOfIdN3gHx8jzOIahHDcGPtrBELtrTddgl0KaIaRZLXVmVZgdjagBByE/\u002BW3hyHr4uMGuyOxGoORNvQp\u002BJc8u5n8IzipFrPFCegvQ=="},{"Id":"79800","StationData":"ivWzFU7QkiS9eZLT2WziXOVXabQzwCuuZwNHr/UpkoldyYESrrlPjBbUtVgizEc5VslvWtVOA0r03AQvKvakpVzx7eMGUEpQjRLExa1DEN1Bwyj5LhzSzM39OqiUC2z6dg7t1cX\u002BwxTigeIYfX2GYA=="},{"Id":"6300","StationData":"yduEY/xTqd15BIpPWcfZavVgqXxW8G0DNM5xACJAn8/ZpHTtvwLeFTW4RMFeRJE1NVjJtZueWTJ5EVmChdAB5gjHspd5IIqBY3RZ8XpVN56vNLevcswIHv5XbQ\u002BKcGl2/fb85cgZdBeTVEi92Q4yuJlEhtEcDPh4Ach19LJOtRs="},{"Id":"67400","StationData":"sbKfUfIcx6Kaq1FVjkewvzr2I\u002BwfjWYquN8gFzf1joz5x3RUVehJosH4O3eQ2m43tPhm0c\u002BZUDCbmBZ2yraQ8Bofab8LfTR0rQpAxNfH\u002BPcFlSUjK9aSkV5zyQt7ZvMdHXBX\u002B0FjvJnFjP2671TFiQ=="},{"Id":"16100","StationData":"qdmEQp\u002BljdAzuSdmM7bhWygmZBBVV7JXCQkffdsKBHxhURBIM2M4wLshOUi//p8oE\u002B5jU\u002BOdpHkPTNtPNB5K0D0Qph5f72DVNFOYvwHkVQbPktHN/L7en/eDLKy8zyDkKnl4i7sm9ED6TnHAu0hpqw=="},{"Id":"71300","StationData":"8aOlaf1EQqciMc1Rzm3Oa7bufIM3Bw/lim6FLxTPEMjtexYYww5G2HH/PBYf1BQckIeNxTTQUqrlUM/vvh64gd\u002BXytyK6RR5eBgapGXfmyf4oYKXHzT3iltXf4/ABS1bSf485h/fyzGbzElA\u002BJ7Eaw=="},{"Id":"19000","StationData":"MFGaWf4yySzH\u002BTOB0yodAkJtyJlIH4YrEq7BxRUXSnYwHedzQke5nfxgTJbGfqZAtUM8Dwv1DvSAT6QtIHGx7oBiryhHQgd3CpTniB79WxZV/boU5Z5ANofLP9ufzEaTgo0QvxbDIUDyzQzvQR\u002B1Ug=="},{"Id":"36000","StationData":"Jcds0YmrDSTdO0khL7b/4T22A5IJRuUD1HvGWztuCjakOTQ2Jn2vDpJHQeAjBZMywQaMdDGPYQQZx038qr7We7FsIzvAiznf3bTQHNzFpT7zy0HE8amtAlKapiYMRYLExLdtZiJYWsWESg7iYYAxew=="},{"Id":"30500","StationData":"6PSSgsueKD90OhoNVYcfGJFrfkCfAg1JcX832f3Rrnx8H39AkX342N6vxtS4oUNWydqY9MHDPPt4S4v8mAOcHIxf7aFhjjwMKwVSkELw\u002BIVQQpGXyxlfPP\u002BR2O0GCIbjCFJ7MgdnMYXKEpnpjvlP7g=="},{"Id":"34800","StationData":"F4CjCnGvXw9nJ7uJL2VesnLbIKRW1X/HgElAPj6uSmTdTXx2wg\u002BkksO49hAbw6e6vwXEowwmJOUO\u002BVqrSebK5wz2qbut1LnZnoEMaeOY5pM0Na4UEZmYuZo2kqoA8GE/F/HKkhPu4DVlW7hechOlnw=="},{"Id":"77400","StationData":"j7NYO0o5eQSCaloYeASYNrMKCVgum/uzP5wmBArj7RBmL0b89FNIIcdl8GCuKMW9ykB5Nsv1fu4yDGubmyWxcgz8F1/FQWp0Uc4BV1xXt0IXM7IETNf0S7Y\u002ByzsGEcgAOsTKZ2l4PuBZjO9jP5TGkg=="},{"Id":"81200","StationData":"4eNwtNYhu9UeizWE0B5etqFo02R1wDU0vLpamJWzsskg\u002BEtBWgrJmpUqHEWizUTfS4I4GLMOB5iNz\u002BrHXMODDpBlOF7kgBM4HGIrnftfNOm/QdHHJJ3biL0WGCakbX6Cyj6lAylxZZjUmdMl2xSq8g=="},{"Id":"69600","StationData":"m7jZ7rQDaB5HoSEyOGhpYjLaZwmvBwLHTr8PjrzZ9eRFwUOd78LSH5gsO3T1WYriTwyyb9Y5JWW88O75/hBOJdYVCn14ohvFCbrVU7FYrogRgBv8zMEKjoO4eL54BSt3VFpkS7jaeMkwHGYiuLr1hw=="},{"Id":"64900","StationData":"rfX7DGTccVNYUNNi6si4d/qP987uOYh/Rcjr9w7wGwhYC6p0WGiqfGBjJKEmkl7SEHc18x6wWq\u002BCUm6LpfmbrWUegPGBDSXGQwQA2lzACS49Ip8Rxdn\u002BgXAL4fgZQgzPzPC35DT4N1u/ZTPpxzR24w=="},{"Id":"66100","StationData":"zu5gpSPUXGSgxe2HNCcIGqWGncldYm0z/2xHkRMb3Pym\u002BXVqKif9/do9/dKpX76fFNy53Z6GWnusD5ijVwXsgqMaOO6lUllKTQdzVteb6QbqAPCv7GkKHbWSRYSLSjWIR5UX\u002BCfnSLlOfSR9nnZX3A=="},{"Id":"75000","StationData":"isKQKzM6K6AM\u002BKVXHozRacWtJQM0AW0m\u002BvueRAONTWm\u002B0fyF33kuJy4i9QYyolCny3sMVz\u002BqWt1isJEj1\u002Bf0In4Wkr9mnUEM06oxik3R7IcoiBAVw7Th2YdoZjpyWIZRy1JOqmQaV5e00jx0ehTl9A=="},{"Id":"74800","StationData":"24qlFmDf270RzC0V42xASDCPss2h0B90dRKVJA0wtDkWKR94I0sDxPreJPeHsu9g3A8RLvrJ/2BIPZoWgtf0C3P5TyjpkK5iw\u002BhkVY/Ysq9S403Ad4rFtha1/1XTDvXnQlH9syHk5HHimObAhYePaQ=="},{"Id":"1700","StationData":"vIlR077oY59GNZ9iDlfBFoOaa26DeYSVUAsQsfLS8cPVKAj4xWTcNeh5ku9NnNVNGi2mlNmJjw\u002BJFBQghHRBZGiWuw9g5oeQzdc9rr98\u002B36dYMoaQSXVTaQ58uKxFEDt5S9Baj4LZITuWixEQAr0Xg=="},{"Id":"21500","StationData":"1nM7/R5ThGINOlzTUAPMDj0xGVU/rO7ua5lzMWxauWmUxV/Y4UfQGfYTBF4y5DM\u002BRfXy/I8wBI15gEVvFX5i5Brx/qlCvjCrvdwQFT0Rsey2njAjdnOL0BEPWRo0EEY9k6ihzzgY3fQpeCNRtGKtNQ=="},{"Id":"47300","StationData":"8kxXFH7OWcPoCW0j9KPQD4O6/BG0XcpvILBuAJdnE7vov\u002BIPSteUFrQtjTv0zFNRNn6YPaSGQos9s44rJoP/ESGLTlHPLWslKkoFno6GnAnWMtlvW5IIBs9h/zrUKjxeB5RE/IMowkieOJhYnT7N1QwhGX2Vhjd8HItLDeQo288="},{"Id":"5700","StationData":"2htureoO39GYd49aWWgKBC9L4k0MTnKV0b14cGiAxfTeeL5ixoUokNubDV7ra\u002Bf2gyOdih19dk0omi15bpLRUJ/8WdISurxqBYgdshJ571I44ER6gBkZXTA0pWYT2KhEamfRplqJXTtH8QrNZdKBCQ=="},{"Id":"71800","StationData":"s7Bxe0FJIDQzDUN4AidZBpbSLfDsIRT1TI9dneWkRUrLD8bexs7W8LfVsgVHNeSJfZMOTODPXPV7LDE8jm6LlJrf2nibfbmKSk9zCmKN3zkSXe6Lccj/v\u002B0dSj/XahyBpmP5gCj4HzrUQQGyoSKh8g=="},{"Id":"81700","StationData":"uEBwYsyRv4BXicEXwsDCwMTx1CmaELv2O8mmDhK/9hCR1G3zmuHmjYPOuiCBQqw7uKMe4cJa1O1imwlecguCeZSk4vfSrbu9GHzKaiOS2VY4vD/Sci91vdgjZx4/nfOG\u002B8K5dUtpTo33\u002BooxrLKwFw=="},{"Id":"32100","StationData":"/debQADlDHZSKsrzy55lonX\u002B4QQDbGoRYwyCHppPqctjdrhhh4Le6xeTsDuvJyygvWvvFTudeXZR08IJbcXk09O0RRONMdiEHn2ocwKgfIdxQPaaJ3NhfWx0geWkGTYVktIVokiLLZX3kyrtrBfX1w=="},{"Id":"76600","StationData":"WgZDoMEmliWeBP9vWZ1TUqzVSbErKAYGlatzurG8R6EQ2v6CyJXEKPerR0tmSqnRpw4Q5EvdYptcI5yqvFhGPGvK\u002BRxxwPEpfQOVHv9NKr\u002Bx0SHUGEMm9LiKPvnhjzokb4eBdr972gG2PA8FK4bV4w=="},{"Id":"1900","StationData":"oKFfQnH6X3u4\u002B3TF9RhlgWPJj2ZbDZbrUPF/bAZQdCS6odxPuoK0VGieTYvLyEYiOUj5TPXFsH9twi130fHMVxIixK8PmID4Gj2w4hFu1CbtnBIAqDcDgx8nmI8\u002BbhLOi6JsPhe\u002BFYGy3IhpvYMkNA=="},{"Id":"85100","StationData":"rO0tB9WNEydl/gDRQqWahvTkui0Ed9mA25lXhA45M7Waae3aZVAGJFAg/a\u002B48Tm/5ra6ZqAZLJhDu20Mvl47mQr1zEt0k9hWzxunshR5YrcRP7Xx6VYnFhSEpMWjriXwRlsYUsBpQXhMH7f39tQmYQ=="},{"Id":"25100","StationData":"uPHT/E4JZPAQQscLdMFK2Vv03JYJdrtoj4gMEbcFYlLTwb7phHI2Wy4edBkkdfpaHenlliuyZDU9\u002BxtRFdMsjvm\u002BNgY7BN0UKEHEiIZfRylax5Sz62En3nv8U8duGIBlsYiRV02pbQqybucGfYO5NQknGTM6KbWs2BS1RE4xGPcbYEzjRO3hSwtTyHMpnPtK"},{"Id":"PCS","StationData":"OoU67\u002BtTE3cAjVhTXnST90KMTJmASAo1h7CU5IeCarbjY6X\u002BQTQ//FgoRT2ggihrB9VBY3jcbrZoMtilMaT6k5QJ/gobeoCR0bIoOeaLcXMX52qHzk/Xy2vWgCZeUEVZjIzRM2/76vfjz\u002B17ZeLfBmOogT9M\u002B035crTbd\u002BlzFpc="},{"Id":"17800","StationData":"LIXOtCesvpsptyQuRPmDsG/gzL5/bPqchI92FepE0aaidwBnhwPrPFeDJNvt0BLHf3dYsI5xhGtbcqlBpAjzrqWllq8WQ6JYum5mwshQyjKANzcP6cqRXv50E7okdzy0VdT4Ky7juFEel1KDKdQ97A=="},{"Id":"34200","StationData":"FxYorPILO\u002BulxlwKEvW3M3RYsTVhDWWlHNlXbKJRw1PIVQ1EZYR7EuQDsBbRg4kJAnAW24m4q8rCUYYi9k3uovXD2TDCzHEEJIK/qb7WpbV6R9wmEITTpQA02dXkjuIXK\u002BHxhO6rUY7K6EW2QUMFeA=="},{"Id":"STS","StationData":"ifm9gH1MLsBU\u002BYFwRm9Y7jCHv9CydIaGfXsOpdzFMZbef0RnR\u002Bodn/fLj1tEwUy3k9mEMNWjPlSUGfJM1i0feJyuerVdDpWKIZ/tvWXYDecTkXc8qOntYnToXYDkAXs8edCDI0Qo5p1B/fCoPpAU\u002BA=="},{"Id":"29100","StationData":"OhesLh31K1l0EWe0dCByaiJdiuTQMweXsJip7U7RB3RccMPtaYKzijR3KqBBBZLBeE6D3MLSbSfmtwm\u002BmXuE5w4kU3PRALDviQ//Iim30edS6JL4holAPUwsoGNhgh7Xqi0to1IR9LQlVA/iNR7SZja\u002B0DU16kC2VBy6iYmtXiw="},{"Id":"22700","StationData":"BCGF5MkZiLQpPbeJFjEadW1/9mVxgi0bdgfx1Ewtcf/AQbeV1t3zyzxPpD3c9rYzpOhbfDF1p5PLrqt/EaXaaqPb8XG/LDspwtpU2lV/qanyp3V3wzNOCRwu5HpNEpqCLaIoOI6F3NBsqqIwhQgg/Gt/46\u002BXT1c1pYy8jpFtP/M="},{"Id":"80700","StationData":"WtZ6C6/5Hsbshmws7Yj6msmMtNN\u002BYbEjGea4IwtMrFUVJC8iufocPUBdhA/1nDEBdcvAXkp5qyqQEaBXJs3MIn9wki9m0BXQLhiKGunz2LD4f5mP1AM5k875syJVsnsUljbnLlDcLaCHk\u002B\u002Bji5CbFE0\u002B1eVquSMYuEHqA/tTMzg="},{"Id":"14100","StationData":"YIlPbb7Y4m/eiOQuwWz8ZrD2zRQ4pjuc4ctJ\u002BuILYuQyY3FGqvi\u002Bpx6gWJAra7hrk8jdMgXLaymKwQpM\u002BONO5TDL7weI14/3DpwbEGIOoa8D5r\u002BU/OokmHtdM3pUFmhOyapKyX0zq1kVFIzvRwlZbA=="},{"Id":"78400","StationData":"e\u002BitWgr6E2otGdmRK96Tx9T/To4fggqUuvg8deQpWFjWOjYtpBoH4w9QmBPtukkWfjmcl12meCmRGxi0RPEnG3BOXOCLYuB4ur5qTPIJe3XNBkG19QriisIUJMvIEjStHgMyLjVshYax/iKfo4AFlg=="},{"Id":"78700","StationData":"1cWa9ChQUiRBK/V/UXhEvHri4L3hWQxO1rfU1Lz3Oy2DsftQatjAtWkNeOEgS0TuukwXmVBLjxPcE3SKws0KxKqp790aQAZDTl/OK89btVwe/cavH4yJ4/2hQrGb3KAbHoErxuPMJ7eLuoeEclbWjQ=="},{"Id":"78500","StationData":"TnAbAmK7MntzUUdusAK3JoTvT2XEQV1qDZPzMuy1Urue\u002BSfrtIvdiXdYLOI1GbUBaoj1Dsh\u002Bq6UtAqEXT4fK1MJLvRNcMZo1w6yaH/Lq1znzVXdh5FMzMqOC039nXywfu/AvITgxHv2JKTAWxcPJKw=="},{"Id":"18500","StationData":"jAHGIsccDqM87mE5lhwkdjkmKJ14E\u002BZHJhDjIqri5UfL0v6ayyNah5rFEABN9Qz2/rGzZTKQxYxE7Fsw2TncTMt7FDxGn49Xo8\u002BH4tSNao1MKYnofzLQKycMv6QAOGnn3c9FiMm9iEz0bVWcT4gBPw=="},{"Id":"84400","StationData":"B6Yl6WWHrZCbEaJJWOElOy3tM/7DQQ4i/7KpcgnTtwW3\u002BTle\u002Bi3f0CotIlfsm/75GR9kM4IFv5GR5BHLIv75S5HYAk6GIABsJmP6uwsFm533/sVI11brq9ZdT98nKP4KpMC3ZMtqcMNAjl6QXTTttQ=="},{"Id":"82400","StationData":"8llYxdMzq0AUbRbejYzazCX05d9UpdVi8FwFlNcjaiCcGwsCv\u002Bf1EWCpcrjTjggZaOb8VbEQzwHsUFqdQQAKjU5ovCI69mVPi/A2oz2yeWrT3V3euw3L5lqBsk2upGjbRt6Qi2cC0Sgp5GHll13l5Q=="},{"Id":"41400","StationData":"5ARu2x/KoE8a\u002BOWvumAogUFmJ7KzAS7\u002BHSqyRnxp1ODfsTGmhr6Mwe\u002BHaDhgDZR/r933hOR7\u002BxDqIe06Bv/m8/2fTIgOLsT7FjOrOXdEcTfOfY3e4Kfj30atLCwZrqDqB72pGnZWHM1vJ1i66nHjuA3T0obXJyvegATyBclm1P0="},{"Id":"7300","StationData":"dwAIr2toM4dDrWPxyz9j7ab/4c/zAhLm7kRXiqNQXBObHvz4TEz3tpNQSnJkmXXRdkWZ\u002BuaPbtkDSWaDa7gvWCECP0UmsO7LLGlMtUFfeqvfFSENvs8bG3YJfyrVyUPIixY9F80E/L19hbio4ellmeXAXwMaLdIjotatAGhQA1k="},{"Id":"77200","StationData":"\u002BjrRfR1KK/5oHE6TBzkZ4Qop\u002BN6qcQsHCXk3QkEBfT9RV8zP0Pm7VGsW89YqN7RLDPgTFQQ12yqhKDYx1NdormD5LDgOcC3ktvC5Px3c\u002BZhcwJWVGdk896Ml9ooeA9bKt6mMrFnpoawQMMMiVFxeGA=="},{"Id":"78300","StationData":"KGJEEFFWCdvERlEplhi\u002ByqLinHAsWBgxH8v\u002B72e/o\u002BU223DIRXMXr6aHTlm8WgN1JSrkSbNsJN217LVeHL7fT8qa88T2G0or70VcrfGKUpTM96wpBK8Vj1oV/y\u002B7mKj\u002BFiyNKTfZaZPGGMMQE3Y4xw=="},{"Id":"73500","StationData":"I5MGG5FhKs4JfNvFPY3VlUg\u002BVpCDHkeiEnztr058l71CPuO8ji694KAx\u002BOdwWg0g8clQJ3p4GpFxa5qPM5WzT\u002B9b5bb2RAe48817Af1qZUxci5doQ7/d5RkWh6S5jxDE8MDIEGPB6FdnNAzurih2CQ=="},{"Id":"12900","StationData":"Nrjx\u002BGGqdu25YNhpGc/bnizxKRHHGERvtYgt8nV7aQy8xMGtCaSe0KgVC9rmMrh0zOwM\u002BybglmJDXX/o0AUFKsQNFczBnFJhcvKUuGCTyL\u002B92x0V5yh5hHxAVhyTipaIhyes8VO0pKBQuUyeYPq0FA=="},{"Id":"4700","StationData":"\u002BPOEUIHRuVK3aX5tv0RVPH3GeOVOKsOi3ll4UC8RHEPbGfEk\u002BeGc1HSpT0KPX2cO8j9FkM6emvV7Xi7itt5XqORH1pVmdovjCCyqTKaA714dsqHo4yzKcqAkdoYo\u002Bd6fuhMECzPIM/x0uJxIMPjqKPCdXlhlNFjmBmHSLoTdaGk="},{"Id":"83700","StationData":"xPt7FLzx9DtdMw24lsLTNlMVD3\u002Bpp0oj1HdxprryNjU/mBo3GHi1q7zfzQw5Zfh\u002ByjTj7u2W1vfFNoJwIwE7Yro0K8OYSiNFlMwanFbq0R1ndVCWrxDTC6jniPHcxN0ruZfmgRlCrUszS4twU5T7kw=="},{"Id":"15200","StationData":"SM0ltnnslKBaegrLqdHwI4eB5SluMXDg\u002BuJmZxQ0zfkNnc40sT3e\u002BU4kgxxUx9G1c1B4QhB36X9vXR65cAU2NmZIe12fPmq5HTj9517oh43pNUxv0JvIT\u002BKlWkVuqMQkzbONQ5BV5UmLOjcS8Fqo3XTLI9rPuSdgmNt\u002BPRlzfic="},{"Id":"11600","StationData":"Q4DsGwyV4SyZ0ljMdl3\u002B4SJdX84krYGgahSDf2jXvCKtKJWGEsgliN0J8CcoK7NGAHlAhcWI7\u002BPBX90atBxaCdXL79YCs\u002BMbxT6IcXBYD3fCUDREaEvCIxntRzZAslHlQgA5rlntVh96m5i6fcF6ig=="},{"Id":"40500","StationData":"gbr\u002BE8CTFAtG\u002B8Ptb9FwQq5U1RFeeLzlMgY7S2emYayr/HzZvmgoYzhUisgELNnBR2LmpJwAuswn6LhyBKcQpnLC22coRHU3ZS6Osy\u002BS/CnIvt52K3XFLMsCWoR793UuR/hQD/sg3Xq/8xZLzoIbeQ=="},{"Id":"74500","StationData":"joYF8HxNtNoyu/lvKRdD6Q6NrOK5/ox6elxTvecsYWFnLhk6KRY2obERJp3KNKfB2KJbMCETssFbP4cgYG0bWLXEWCLcRsgTWrdmmTRsJLENKFXBlGL8LJWxWiTrEtJdPtLxb9Lc5utVVX9rRZOZcw=="},{"Id":"83100","StationData":"J69h\u002BefqQoHpfFjm4IilcG/RwqJFdGvyhVaGM05blkW2ZKPvBVLtzQVtZqHOT/i6fqUARjLbM2VlV/G8yeVrdGVONDQqtELsWK6LcCDQ1DbgQn8HGL1zLE4DQ/3OFylPaLBgue2GG3xs3yfX8HfkoA=="},{"Id":"84600","StationData":"EswVFxCpb27X8LNXIdoGKlrRWGou02pybiNbJUoCCmZTPyrWdv0exzfclfdEQwjqBdw6YMp1C8uoZTtU9YUYiharSrU47hBiu9sNJaZq083V5bOE7iusVgC09taM3zpE2bAiVrCFAlHJPEzRbGbBqg=="},{"Id":"64400","StationData":"OSMrr5DB4CuA2hqsiC2SNjKpTaEZSfZ9y6HAQNORSyuL3\u002By2WJJiKChcPif/KxT3GKxZCqgqQ5iLpLVHckU9ktKRY0fyoQkPQw3/uu1h2MHBbaHA\u002BJpChYZ0powM5G4Ua7Ate8QavwiEeyDQT/nrDg=="},{"Id":"86300","StationData":"cJEGEfZJS2p4fZRf1QkzMdvEvKwC0qLljzZR5tTbwXlMIYY\u002BXXvz4\u002BOFDKF1GKaIKnj7\u002BletKIb63IR\u002BSiZg0duHoWP1N11dDl9t10PI7F2kP20Ea/t/IYw/w\u002BVvUDcdJrVT2SI5Et5GSsLsqEdUYA=="},{"Id":"80500","StationData":"uwbR/L8K0ytuy8qrHhz9mx4FzufNDgLD8CoT6wXEpx049jtvlYo1rSjpdwEhB6RKoAza3hzWEJzox3TmbvFW3B99E9TBlRqVVGT4Frg6ap/l1XeSoAxVsr7YyAIFBR5qD/pd1465Uwp3GWxv9B2fDA=="},{"Id":"85700","StationData":"/m8HGB14FNTZ7mv4KhyE7pqks8/L0YZk3cvBWX1kRSHJH7GjJtOwebRqHf5FRm1dyhRB2CTeo9iaaAC2enipNo/66T0VXAHSts\u002B\u002BS4XBFY1lNyyqvwEL1sQmwHRBoAzYy5A\u002Bs31JmCSjnP9EO00H9Q=="}];
+        var groupedStations = [{"State":"Kedah","Stations":[{"Description":"ALOR SETAR","Id":"44000","TrainServices":["ETS","Intercity"]},{"Description":"ANAK BUKIT","Id":"44400","TrainServices":["ETS"]},{"Description":"GURUN","Id":"42400","TrainServices":["ETS"]},{"Description":"SUNGAI PETANI","Id":"41400","TrainServices":["ETS","Intercity"]}]},{"State":"Perlis","Stations":[{"Description":"ARAU","Id":"45800","TrainServices":["ETS","Intercity"]},{"Description":"PADANG BESAR","Id":"47300","TrainServices":["ETS","Intercity"]}]},{"State":"Pahang","Stations":[{"Description":"AUR GADING","Id":"72700","TrainServices":["Intercity"]},{"Description":"BUKIT BETONG","Id":"72200","TrainServices":["Intercity"]},{"Description":"CHEGAR PERAH","Id":"73100","TrainServices":["Intercity"]},{"Description":"JENDERAK","Id":"67900","TrainServices":["Intercity"]},{"Description":"JERANTUT","Id":"68700","TrainServices":["Intercity"]},{"Description":"KEMAYAN","Id":"63700","TrainServices":["Intercity"]},{"Description":"KG BERKAM","Id":"72400","TrainServices":["Intercity"]},{"Description":"KRAMBIT","Id":"70200","TrainServices":["Intercity"]},{"Description":"KUALA KRAU","Id":"67400","TrainServices":["Intercity"]},{"Description":"KUALA LIPIS","Id":"71300","TrainServices":["Intercity"]},{"Description":"MELA","Id":"69600","TrainServices":["Intercity"]},{"Description":"MENGKARAK","Id":"64900","TrainServices":["Intercity"]},{"Description":"MENTAKAB","Id":"66100","TrainServices":["Intercity"]},{"Description":"MENTARA BARU","Id":"75000","TrainServices":["Intercity"]},{"Description":"MERAPOH","Id":"74800","TrainServices":["Intercity"]},{"Description":"PADANG TUNGKU","Id":"71800","TrainServices":["Intercity"]},{"Description":"SUNGAI TEMAU","Id":"73500","TrainServices":["Intercity"]},{"Description":"TELUK GUNUNG","Id":"74500","TrainServices":["Intercity"]},{"Description":"TRIANG","Id":"64400","TrainServices":["Intercity"]}]},{"State":"Perak","Stations":[{"Description":"BAGAN SERAI","Id":"2600","TrainServices":["ETS"]},{"Description":"BATU GAJAH","Id":"9700","TrainServices":["ETS","Intercity"]},{"Description":"BEHRANG","Id":"14600","TrainServices":["ETS"]},{"Description":"IPOH","Id":"9000","TrainServices":["ETS","Intercity"]},{"Description":"KAMPAR","Id":"10900","TrainServices":["ETS","Intercity"]},{"Description":"KUALA KANGSAR","Id":"6300","TrainServices":["ETS","Intercity"]},{"Description":"PADANG RENGAS","Id":"5700","TrainServices":["ETS"]},{"Description":"PARIT BUNTAR","Id":"1900","TrainServices":["ETS"]},{"Description":"SLIM RIVER","Id":"14100","TrainServices":["ETS"]},{"Description":"SUNGAI SIPUT","Id":"7300","TrainServices":["ETS","Intercity"]},{"Description":"SUNGKAI","Id":"12900","TrainServices":["ETS"]},{"Description":"TAIPING","Id":"4700","TrainServices":["ETS","Intercity"]},{"Description":"TANJONG MALIM","Id":"15200","TrainServices":["ETS","Intercity"]},{"Description":"TAPAH ROAD","Id":"11600","TrainServices":["ETS"]}]},{"State":"Negeri Sembilan","Stations":[{"Description":"BAHAU","Id":"61800","TrainServices":["Intercity"]},{"Description":"GEMAS","Id":"27800","TrainServices":["ETS","Intercity"]},{"Description":"NILAI","Id":"21500","TrainServices":["Intercity"]},{"Description":"SEREMBAN","Id":"22700","TrainServices":["ETS","Intercity"]}]},{"State":"Selangor","Stations":[{"Description":"BATANG KALI","Id":"16500","TrainServices":["ETS"]},{"Description":"KAJANG","Id":"20400","TrainServices":["ETS","Intercity"]},{"Description":"KLIA T1","Id":"KUL","TrainServices":["ERL"]},{"Description":"KLIA T2","Id":"KL2","TrainServices":["ERL"]},{"Description":"KUALA KUBU BHARU","Id":"16100","TrainServices":["ETS"]},{"Description":"PUTRAJAYA \u0026 CYBERJAYA","Id":"PCS","TrainServices":["ERL"]},{"Description":"RAWANG","Id":"17800","TrainServices":["ETS"]},{"Description":"SALAK TINGGI","Id":"STS","TrainServices":["ERL"]},{"Description":"SUNGAI BULOH","Id":"18500","TrainServices":["ETS"]}]},{"State":"Melaka","Stations":[{"Description":"BATANG MELAKA","Id":"26400","TrainServices":["ETS"]},{"Description":"PULAU SEBANG/TAMPIN","Id":"25100","TrainServices":["ETS","Intercity"]}]},{"State":"WP Kuala Lumpur","Stations":[{"Description":"BDR TASEK SELATAN","Id":"19600","TrainServices":["ETS","Intercity","ERL"]},{"Description":"KEPONG SENTRAL","Id":"18400","TrainServices":["ETS"]},{"Description":"KL SENTRAL","Id":"19100","TrainServices":["ETS","Intercity","ERL"]},{"Description":"KUALA LUMPUR","Id":"19000","TrainServices":["ETS"]}]},{"State":"Johor","Stations":[{"Description":"BEKOK","Id":"31300","TrainServices":["Intercity"]},{"Description":"JB SENTRAL","Id":"37500","TrainServices":["Intercity"]},{"Description":"KEMPAS BARU","Id":"36900","TrainServices":["Intercity"]},{"Description":"KLUANG","Id":"33200","TrainServices":["Intercity"]},{"Description":"KULAI","Id":"36000","TrainServices":["Intercity"]},{"Description":"LABIS","Id":"30500","TrainServices":["Intercity"]},{"Description":"LAYANG LAYANG","Id":"34800","TrainServices":["Intercity"]},{"Description":"PALOH","Id":"32100","TrainServices":["Intercity"]},{"Description":"RENGAM","Id":"34200","TrainServices":["Intercity"]},{"Description":"SEGAMAT","Id":"29100","TrainServices":["ETS","Intercity"]}]},{"State":"Kelantan","Stations":[{"Description":"BERTAM","Id":"77900","TrainServices":["Intercity"]},{"Description":"BERTAM BARU","Id":"77800","TrainServices":["Intercity"]},{"Description":"BUKIT ABU","Id":"80000","TrainServices":["Intercity"]},{"Description":"BUKIT PANAU","Id":"84200","TrainServices":["Intercity"]},{"Description":"BUNUT SUSU","Id":"85500","TrainServices":["Intercity"]},{"Description":"CHICHA TINGGI","Id":"84800","TrainServices":["Intercity"]},{"Description":"DABONG","Id":"79300","TrainServices":["Intercity"]},{"Description":"GUA MUSANG","Id":"76000","TrainServices":["Intercity"]},{"Description":"JEREK BARU","Id":"78100","TrainServices":["Intercity"]},{"Description":"KEMUBU","Id":"78900","TrainServices":["Intercity"]},{"Description":"KG BARU BUKIT ABU","Id":"80300","TrainServices":["Intercity"]},{"Description":"KG KOK PASIR","Id":"86000","TrainServices":["Intercity"]},{"Description":"KG. SIRIAN","Id":"77000","TrainServices":["Intercity"]},{"Description":"KRAI","Id":"82100","TrainServices":["Intercity"]},{"Description":"KUALA GRIS","Id":"79800","TrainServices":["Intercity"]},{"Description":"LIMAU KASTURI","Id":"77400","TrainServices":["Intercity"]},{"Description":"MANEK URAI","Id":"81200","TrainServices":["Intercity"]},{"Description":"PAHI","Id":"81700","TrainServices":["Intercity"]},{"Description":"PAN MALAYAN","Id":"76600","TrainServices":["Intercity"]},{"Description":"PASIR MAS","Id":"85100","TrainServices":["Intercity"]},{"Description":"SG MENGKUANG BARU","Id":"80700","TrainServices":["Intercity"]},{"Description":"SRI BINTANG","Id":"78400","TrainServices":["Intercity"]},{"Description":"SRI JAYA","Id":"78700","TrainServices":["Intercity"]},{"Description":"SRI MAHLIGAI","Id":"78500","TrainServices":["Intercity"]},{"Description":"SUNGAI KELADI","Id":"84400","TrainServices":["Intercity"]},{"Description":"SUNGAI NAL","Id":"82400","TrainServices":["Intercity"]},{"Description":"SUNGAI SIRIAN","Id":"77200","TrainServices":["Intercity"]},{"Description":"SUNGAI TASIN","Id":"78300","TrainServices":["Intercity"]},{"Description":"TANAH MERAH","Id":"83700","TrainServices":["Intercity"]},{"Description":"TEMANGAN","Id":"83100","TrainServices":["Intercity"]},{"Description":"TO UBAN","Id":"84600","TrainServices":["Intercity"]},{"Description":"TUMPAT","Id":"86300","TrainServices":["Intercity"]},{"Description":"ULU TEMIANG","Id":"80500","TrainServices":["Intercity"]},{"Description":"WAKAF BHARU","Id":"85700","TrainServices":["Intercity"]}]},{"State":"Pulau Pinang","Stations":[{"Description":"BUKIT MERTAJAM","Id":"600","TrainServices":["ETS","Intercity"]},{"Description":"BUTTERWORTH","Id":"100","TrainServices":["ETS","Intercity"]},{"Description":"NIBONG TEBAL","Id":"1700","TrainServices":["ETS"]},{"Description":"TASEK GELUGOR","Id":"40500","TrainServices":["ETS"]}]},{"State":"Thailand","Stations":[{"Description":"HAT YAI","Id":"91000","TrainServices":["Intercity"]}]}];
+        var currentYear = 2025;
+        var currentYearPlusOne = 2026;
+        var id_btnSubmit = "#btnSubmit";
+        var inputRequestVerificationToken = "input[name='__RequestVerificationToken']";
+
+        var departSection = ".DepartSection";
+        var returnSection = ".ReturnSection";
+        var bufferedMinute = parseInt("0");
+
+        let warning = "";
+        let isRenderTripError = false;
+        let isRenderDepartTripSuccess = false;
+        let isRenderReturnTripSuccess = true;
+        let hasReturn = false;
+        var eRLMaximumPassengerCount = 0;
+        var etsMaximumPassengerCount = 8;
+        var eRLMaximumReturnDays = 0;
+        var id_passengerCount = "#PassengerCount";
+        let isSubmitAgain = 1;
+
+        //BindFunctionButton2($(id_form), $(id_btnSubmit), "", false, null, SearchTripAgain);
+
+        $(document).ready(function () {
+            $("#popupModal").on("shown.bs.modal", function () {
+                $("#popupModal").off("shown.bs.modal");
+                //Depart
+                RenderTrip($(id_formSearchData).val(), $(id_formValidationCode).val(), "02 May 2025", false, 1);
+
+                //Return
+            });
+
+            jLoading2();
+        });
+    </script>
+</body>
+</html>

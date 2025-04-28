@@ -1,17 +1,26 @@
+import logging
+
 from ktmb import get_seats
 from utils import COOKIE, TOKEN, LAST_MESSAGE, TO_STRIKETHROUGH, FROM_STATE_NAME, FROM_STATION_ID, \
     FROM_STATION_NAME, TO_STATE_NAME, TO_STATION_ID, TO_STATION_NAME, DATE, DEPARTURE_TIME, ARRIVAL_TIME, \
-    PARTIAL_CONTENT, SEARCH_DATA, TRIPS_DATA, TRIP_DATA, LAYOUT_DATA, PRICE, get_tracking_content, TO_HIDE_KEYBOARD
+    PARTIAL_CONTENT, SEARCH_DATA, TRIPS_DATA, TRIP_DATA, LAYOUT_DATA, PRICE, get_tracking_content, TO_HIDE_KEYBOARD, \
+    STATIONS_DATA
 
 
-### TEST
-async def get_seats_contents(data, session):
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+)
+logging.getLogger('httpx').setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+async def get_seats_contents(search_data, trip_data, session, token):
+    # logger.info(data)
     res = get_seats(
         session,
-        # None,
-        data.get(SEARCH_DATA),
-        data.get(TRIP_DATA),
-        data.get(TOKEN)
+        search_data,
+        trip_data,
+        token
     )
     if not res.get('status'):
         return {
@@ -19,9 +28,9 @@ async def get_seats_contents(data, session):
             'error': res.get('error')
         }
 
-    data[LAYOUT_DATA] = res.get('layout_data')
+    layout_data = res.get('layout_data')
     seats_data = res.get('seats_data')
-    # print(seats_data)
+    # logger.info(seats_data)
 
     contents = ''
     overall_prices = set()
@@ -39,6 +48,7 @@ async def get_seats_contents(data, session):
 
     return {
         'status': True,
+        'layout_data': layout_data,
         'seats_data': seats_data,
         'overall_prices': overall_prices,
         PARTIAL_CONTENT: contents,
@@ -46,13 +56,7 @@ async def get_seats_contents(data, session):
     }
 
 
-async def view_tracking_one(context, session):
-    pass
-
-
 async def cancel_last_message(context):
-    # print('TO_STRIKETHROUGH:', context.user_data.get(TO_STRIKETHROUGH, None))
-    # print('TO_HIDE_KEYBOARD:', context.user_data.get(TO_HIDE_KEYBOARD, None))
     if context.user_data.get(LAST_MESSAGE):
         last_message = context.user_data.get(LAST_MESSAGE)
         try:
@@ -71,14 +75,14 @@ async def cancel_last_message(context):
                     reply_markup=None
                 )
         except Exception as e:
-            print(e)
+            logger.info(e)
 
 
 async def display_error_inline(context, res, reply_markup=None):
-    if context.user_data.get(LAST_MESSAGE):
-        last_message = context.user_data.get(LAST_MESSAGE)
+    last_message = context.user_data.get(LAST_MESSAGE)
+    if last_message:
         message = (
-            f'{get_tracking_content(context.user_data)}'
+            f'{get_tracking_content(context.user_data.get('transaction', {}), context.user_data.get('volatile', {}))}'
             '\n'
             f'❌ We encountered an error. Please try again later.\n\n👾 For dev: {res.get('error')}'
         )
@@ -101,26 +105,38 @@ async def reply_error(update, context, res):
     context.user_data[TO_STRIKETHROUGH] = False
 
 
-def clear_session_data(context):
+def clear_session_data(context, auto_logout=False):
+    if not auto_logout:
+        context.user_data.pop('email', None)
+        context.user_data.pop('password', None)
     context.user_data.pop(COOKIE, None)
     context.user_data.pop(TOKEN, None)
 
 
-def clear_temp_data(context):
-    # context.user_data.pop(STATIONS_DATA, None)
-    context.user_data.pop(FROM_STATE_NAME, None)
-    context.user_data.pop(FROM_STATION_ID, None)
-    context.user_data.pop(FROM_STATION_NAME, None)
-    context.user_data.pop(TO_STATE_NAME, None)
-    context.user_data.pop(TO_STATION_ID, None)
-    context.user_data.pop(TO_STATION_NAME, None)
-    context.user_data.pop(DATE, None)
-    context.user_data.pop(DEPARTURE_TIME, None)
-    context.user_data.pop(ARRIVAL_TIME, None)
-    context.user_data.pop(PARTIAL_CONTENT, None)
+# def clear_temp_data(context, auto_logout=False):
+#     if not auto_logout:
+#         context.user_data.pop(FROM_STATE_NAME, None)
+#         context.user_data.pop(FROM_STATION_ID, None)
+#         context.user_data.pop(FROM_STATION_NAME, None)
+#         context.user_data.pop(TO_STATE_NAME, None)
+#         context.user_data.pop(TO_STATION_ID, None)
+#         context.user_data.pop(TO_STATION_NAME, None)
+#         context.user_data.pop(DATE, None)
+#         context.user_data.pop(DEPARTURE_TIME, None)
+#         context.user_data.pop(ARRIVAL_TIME, None)
+#
+#     context.user_data.pop(STATIONS_DATA, None)
+#     context.user_data.pop(PARTIAL_CONTENT, None)
+#     context.user_data.pop(SEARCH_DATA, None)
+#     context.user_data.pop(TRIPS_DATA, None)
+#     context.user_data.pop(TRIP_DATA, None)
+#     context.user_data.pop(LAYOUT_DATA, None)
+#     context.user_data.pop(PRICE, None)
 
+
+def clear_volatile_data(context):
+    context.user_data.pop(STATIONS_DATA, None)
     context.user_data.pop(SEARCH_DATA, None)
     context.user_data.pop(TRIPS_DATA, None)
     context.user_data.pop(TRIP_DATA, None)
     context.user_data.pop(LAYOUT_DATA, None)
-    context.user_data.pop(PRICE, None)
