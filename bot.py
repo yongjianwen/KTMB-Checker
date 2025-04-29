@@ -19,6 +19,7 @@ from telegram.ext import (
     ContextTypes,
     ConversationHandler, PicklePersistence, MessageHandler, filters,
 )
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from bot_helper import get_seats_contents, cancel_last_message, reply_error, clear_session_data, display_error_inline
 from ktmb import get_station_by_id, login, get_trips, logout, get_stations, reserve_by_price, cancel_reservation
@@ -74,6 +75,15 @@ app = Flask(__name__)
 initialized = False
 
 MALAYSIA_TZ = pytz.timezone('Asia/Kuala_Lumpur')
+
+
+def my_job(context, data, chat_id):
+    logger.info("Job is running")
+
+
+scheduler = BackgroundScheduler()
+# scheduler.add_job(my_job, 'interval', seconds=10)
+scheduler.start()
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -1255,33 +1265,65 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
             year, month, day = context.user_data.get('transaction', {}).get(DATE).split('-')
             hour, minute = context.user_data.get('transaction', {}).get(DEPARTURE_TIME).split(':')
             date_time = datetime(int(year), int(month), int(day), int(hour), int(minute)).timestamp()
-            context.job_queue.run_repeating(
-                alarm,
-                interval=15,
-                first=15,
-                last=date_time,
-                data={
-                    COOKIE: context.user_data.get(COOKIE),
-                    TOKEN: context.user_data.get(TOKEN),
-                    'data': next(t for t in context.user_data.get(TRACKING_LIST, []) if t.get('uuid') == tracking_uuid)
+
+            # scheduler.add_job(my_job, 'interval', seconds=10)
+
+            scheduler.add_job(
+                # alarm,
+                sync_alarm_wrapper,
+                'interval',
+                seconds=15,
+                start_date=datetime.now() + timedelta(seconds=15),
+                end_date=datetime(int(year), int(month), int(day), int(hour), int(minute)),
+                args=[],
+                kwargs={
+                    'context': context,
+                    'data': {
+                        COOKIE: context.user_data.get(COOKIE),
+                        TOKEN: context.user_data.get(TOKEN),
+                        'data': next(
+                            t for t in context.user_data.get(TRACKING_LIST, []) if t.get('uuid') == tracking_uuid)
+                    },
+                    'chat_id': chat_id
                 },
-                name=str(tracking_uuid),
-                chat_id=chat_id
+                id=str(tracking_uuid)
             )
-            # context.job_queue.run_once(
+
+            # scheduler.add_job(
             #     alarm,
-            #     # interval=20,
-            #     # first=20,
-            #     # last=date_time,
+            #     'interval',
+            #     seconds=15,
+            #     start_date=datetime.now() + timedelta(seconds=15),
+            #     end_date=datetime(int(year), int(month), int(day), int(hour), int(minute)),
+            #     args=[],
+            #     kwargs={
+            #         'context': context,
+            #         'data': {
+            #             COOKIE: context.user_data.get(COOKIE),
+            #             TOKEN: context.user_data.get(TOKEN),
+            #             'data': next(
+            #                 t for t in context.user_data.get(TRACKING_LIST, []) if t.get('uuid') == tracking_uuid)
+            #         },
+            #         'chat_id': chat_id
+            #     },
+            #     id=str(tracking_uuid)
+            # )
+
+            # context.job_queue.run_repeating(
+            #     alarm,
+            #     interval=15,
+            #     first=15,
+            #     last=date_time,
             #     data={
             #         COOKIE: context.user_data.get(COOKIE),
             #         TOKEN: context.user_data.get(TOKEN),
-            #         'data': next(t for t in context.user_data.get(TRACKING_LIST, []))
+            #         'data': next(t for t in context.user_data.get(TRACKING_LIST, []) if t.get('uuid') == tracking_uuid)
             #     },
             #     name=str(tracking_uuid),
             #     chat_id=chat_id
             # )
         except Exception as e:
+            logger.error(e)
             context.user_data[TO_STRIKETHROUGH] = False
             context.user_data[TO_HIDE_KEYBOARD] = True
             await display_error_inline(
@@ -1587,7 +1629,18 @@ LESS_THAN_50 = 600
 LESS_THAN_10 = 60
 
 
-async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
+def sync_alarm_wrapper(*args, **kwargs):
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        return loop.run_until_complete(alarm(*args, **kwargs))
+    finally:
+        loop.close()
+
+
+async def alarm(context: ContextTypes.DEFAULT_TYPE, data, chat_id) -> None:
+    logger.info('Job run')
+
     now_time = datetime.now().time()
     start_time = time(0, 0)
     end_time = time(15, 37)
@@ -1595,10 +1648,11 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
         logger.info('Skipped job')
         return
 
-    job = context.job
+    # job = context.job
 
     session = requests.Session()
-    session.cookies.update(job.data.get(COOKIE))
+    # session.cookies.update(job.data.get(COOKIE))
+    session.cookies.update(data.get(COOKIE))
 
     res = get_stations(session)
     if not res.get('status'):
@@ -1607,7 +1661,8 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
 
     stations_data = res.get(STATIONS_DATA)
 
-    t = job.data.get('data')
+    # t = job.data.get('data')
+    t = data.get('data')
     tracking_uuid = t.get('uuid')
     from_state_name = t.get(FROM_STATE_NAME)
     from_station_id = t.get(FROM_STATION_ID)
@@ -1630,7 +1685,8 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
         datetime(int(year), int(month), int(day)),
         get_station_by_id(stations_data, from_station_id),
         get_station_by_id(stations_data, to_station_id),
-        job.data.get(TOKEN)
+        # job.data.get(TOKEN)
+        data.get(TOKEN)
     )
     if not res.get('status'):
         logger.info('get_trips error')
@@ -1646,7 +1702,8 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
         search_data,
         trip_data,
         session,
-        job.data.get(TOKEN)
+        # job.data.get(TOKEN),
+        data.get(TOKEN)
     )
     if not res.get('status'):
         logger.info('get_seats_contents error')
@@ -1715,7 +1772,8 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
         if reserved_seat is None:
             price_message = 'any price' if price == -1 else f'RM {price}'
             await context.bot.send_message(
-                job.chat_id,
+                # job.chat_id,
+                chat_id,
                 text=(
                     f'{get_tracking_content(t, {PARTIAL_CONTENT: partial_content}, reason)}'
                     '\n'
@@ -1728,7 +1786,8 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
             )
         else:
             await context.bot.send_message(
-                job.chat_id,
+                # job.chat_id,
+                chat_id,
                 text=(
                     f'{get_tracking_content({
                         **t,
