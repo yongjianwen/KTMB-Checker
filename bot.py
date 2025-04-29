@@ -6,6 +6,7 @@ import re
 import uuid
 from datetime import datetime, timedelta, time
 
+import pytz
 import requests
 from dotenv import load_dotenv
 from flask import Flask, request
@@ -24,7 +25,8 @@ from ktmb import get_station_by_id, login, get_trips, logout, get_stations, rese
 from utils import BACK_DATA, COOKIE, TOKEN, LAST_MESSAGE, TO_STRIKETHROUGH, STATIONS_DATA, FROM_STATE_NAME, \
     TO_STATE_NAME, FROM_STATION_ID, TO_STATION_ID, FROM_STATION_NAME, TO_STATION_NAME, DATE, PARTIAL_CONTENT, \
     SEARCH_DATA, TRIPS_DATA, TRIP_DATA, DEPARTURE_TIME, ARRIVAL_TIME, LAYOUT_DATA, PRICE, TRACKING_LIST, RESERVED_SEAT, \
-    Title, UUID_PATTERN, TO_HIDE_KEYBOARD
+    Title, UUID_PATTERN, TO_HIDE_KEYBOARD, build_profile_keyboard, build_manage_profile_keyboard, \
+    build_shortcut_keyboard, build_manage_shortcut_keyboard
 from utils import build_state_keyboard, generate_station_keyboard, generate_friday_keyboard, generate_trips_keyboard, \
     generate_tracking_keyboard, generate_reserve_keyboard, generate_reserved_keyboard, get_tracking_content
 
@@ -44,6 +46,11 @@ logger.info('ENV: ' + ENV)
 # Stages
 (
     START,
+    ADD_PROFILE, ADD_PROFILE_PASSWORD,
+    MANAGE_PROFILE, SELECTED_PROFILE, CHANGE_PROFILE_PASSWORD,
+    ADD_FROM_STATE, ADD_FROM_STATION,
+    ADD_TO_STATE, ADD_TO_STATION,
+    MANAGE_SHORTCUT, SELECTED_SHORTCUT,
     SET_EMAIL, SET_PASSWORD,
     SET_FROM_STATE, SET_FROM_STATION,
     SET_TO_STATE, SET_TO_STATION,
@@ -52,7 +59,7 @@ logger.info('ENV: ' + ENV)
     SET_TRACK,
     VIEW_TRACK,
     RESERVED
-) = range(12)
+) = range(23)
 
 # Bottom keyboard
 NEW, VIEW = 'Track New Train 🚈', '👀 View Tracking'
@@ -66,8 +73,7 @@ app = Flask(__name__)
 # Initialize only once
 initialized = False
 
-
-# INTERVALS = []
+MALAYSIA_TZ = pytz.timezone('Asia/Kuala_Lumpur')
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -118,8 +124,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     )
     await cancel_last_message(context)
 
-    context.user_data[TO_STRIKETHROUGH] = False
-    context.user_data[TO_HIDE_KEYBOARD] = False
+    enable_hide_keyboard_only(context.user_data)
+
+    if 'transaction_temp' not in context.user_data:
+        context.user_data['transaction_temp'] = {}
 
     message = (
         f'Hello {update.message.from_user.first_name} 👋\n'
@@ -135,10 +143,503 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     )
 
     if not is_logged_in(context.user_data):
-        await asyncio.sleep(3)  # 3 second delay
-        context.user_data[LAST_MESSAGE] = await update.message.reply_text('Enter your KTMB email', reply_markup=None)
+        await asyncio.sleep(1)  # 1 second delay
+        reply_markup = InlineKeyboardMarkup(
+            build_profile_keyboard(context.user_data.get('profiles', {}), 'set_email:')
+        )
+        context.user_data[LAST_MESSAGE] = await update.message.reply_text(
+            'Enter your KTMB email, or select a profile to log in', reply_markup=reply_markup)
         context.user_data['state'] = SET_EMAIL
         return SET_EMAIL
+
+    context.user_data['state'] = START
+    return START
+
+
+async def add_profile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await context.bot.send_chat_action(
+        chat_id=update.effective_chat.id,
+        action=ChatAction.TYPING
+    )
+    await cancel_last_message(context)
+
+    disable_any_cancel(context.user_data)
+
+    context.user_data[LAST_MESSAGE] = await update.message.reply_text(
+        'Key in email',
+        reply_markup=None
+    )
+
+    context.user_data['state'] = ADD_PROFILE
+    return ADD_PROFILE
+
+
+async def add_profile_password(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    email_temp = update.message.text
+    context.user_data['email_temp'] = email_temp
+
+    await context.bot.send_chat_action(
+        chat_id=update.effective_chat.id,
+        action=ChatAction.TYPING
+    )
+    await cancel_last_message(context)
+
+    disable_any_cancel(context.user_data)
+
+    if context.user_data.get('profiles', {}).get(email_temp):
+        context.user_data[LAST_MESSAGE] = await update.message.reply_text(
+            'Email already exists. /manage instead? Or key in new email',
+            reply_markup=None
+        )
+        context.user_data['state'] = ADD_PROFILE
+        return ADD_PROFILE
+    else:
+        context.user_data[LAST_MESSAGE] = await update.message.reply_text(
+            'Key in password',
+            reply_markup=None
+        )
+        context.user_data['state'] = ADD_PROFILE_PASSWORD
+        return ADD_PROFILE_PASSWORD
+
+
+async def added_profile_password(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    password_temp = update.message.text
+    context.user_data['password_temp'] = password_temp
+
+    await context.bot.send_chat_action(
+        chat_id=update.effective_chat.id,
+        action=ChatAction.TYPING
+    )
+    await cancel_last_message(context)
+
+    disable_any_cancel(context.user_data)
+
+    if 'profiles' not in context.user_data:
+        context.user_data['profiles'] = {}
+
+    context.user_data.get('profiles', {})[context.user_data.get('email_temp')] = password_temp
+    context.user_data.pop('email_temp', None)
+    context.user_data.pop('password_temp', None)
+
+    context.user_data[LAST_MESSAGE] = await update.message.reply_text(
+        'Success',
+        reply_markup=None
+    )
+
+    context.user_data['state'] = START
+    return START
+
+
+async def manage_profile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await context.bot.send_chat_action(
+        chat_id=update.effective_chat.id,
+        action=ChatAction.TYPING
+    )
+    await cancel_last_message(context)
+
+    enable_hide_keyboard_only(context.user_data)
+
+    reply_markup = InlineKeyboardMarkup(
+        build_profile_keyboard(context.user_data.get('profiles', {}), 'manage_profile:')
+    )
+    message = (
+        'Select a profile to manage'
+    )
+
+    context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
+        message,
+        reply_markup=reply_markup,
+        parse_mode='HTML'
+    )
+
+    context.user_data['state'] = MANAGE_PROFILE
+    return MANAGE_PROFILE
+
+
+async def selected_profile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    match = re.search('manage_profile:(.*)', query.data)
+    if match:
+        context.user_data['email_temp'] = match.group(1)
+    else:
+        return context.user_data.get('state')
+
+    await cancel_last_message(context)
+
+    enable_hide_keyboard_only(context.user_data)
+
+    reply_markup = InlineKeyboardMarkup(
+        build_manage_profile_keyboard(context.user_data['email_temp'])
+    )
+    message = (
+        'Choose an action'
+    )
+
+    context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
+        message,
+        reply_markup=reply_markup,
+        parse_mode='HTML'
+    )
+
+    context.user_data['state'] = SELECTED_PROFILE
+    return SELECTED_PROFILE
+
+
+async def change_profile_password(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await cancel_last_message(context)
+
+    disable_any_cancel(context.user_data)
+
+    context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
+        'Key in new password',
+        reply_markup=None,
+        parse_mode='HTML'
+    )
+
+    context.user_data['state'] = CHANGE_PROFILE_PASSWORD
+    return CHANGE_PROFILE_PASSWORD
+
+
+async def deleted_profile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await cancel_last_message(context)
+
+    disable_any_cancel(context.user_data)
+
+    context.user_data.get('profiles', {}).pop(context.user_data.get('email_temp'), None)
+
+    context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
+        'Profile deleted',
+        reply_markup=None,
+        parse_mode='HTML'
+    )
+
+    context.user_data['state'] = START
+    return START
+
+
+async def add_from_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    if query is None:
+        # From bottom keyboard
+        await context.bot.send_chat_action(
+            chat_id=update.effective_chat.id,
+            action=ChatAction.TYPING
+        )
+        await cancel_last_message(context)
+    else:
+        await query.answer()
+
+    enable_hide_keyboard_only(context.user_data)
+    context.user_data['transaction_temp'] = {}
+
+    session = requests.Session()
+    if COOKIE in context.user_data:
+        session.cookies.update(context.user_data.get(COOKIE))
+
+    res = get_stations(session)
+    if not res.get('status'):
+        enable_cancel(context.user_data)
+        await display_error_inline(context, res, None)
+        context.user_data['state'] = START
+        return START
+
+    context.user_data[STATIONS_DATA] = res.get(STATIONS_DATA)
+
+    reply_markup = InlineKeyboardMarkup(
+        build_state_keyboard(context.user_data.get(STATIONS_DATA, []), {}, 'add_from_state:'))
+    message = (
+        f'{get_tracking_content(context.user_data.get('transaction', {}), {})}'
+        '\n'
+        'Select departure state'
+    )
+
+    if query is None:
+        # From bottom keyboard
+        context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
+            message,
+            reply_markup=reply_markup,
+            parse_mode='HTML'
+        )
+    else:
+        # From inline keyboard
+        context.user_data[LAST_MESSAGE] = await update.effective_message.edit_text(
+            message,
+            reply_markup=reply_markup,
+            parse_mode='HTML'
+        )
+
+    context.user_data['state'] = ADD_FROM_STATE
+    return ADD_FROM_STATE
+
+
+async def add_from_station(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    if query.data != 'add_to_state:' + BACK_DATA:
+        match = re.search('add_from_state:(.*)', query.data)
+        if match:
+            context.user_data.get('transaction_temp', {})[FROM_STATE_NAME] = match.group(1)
+        else:
+            return context.user_data.get('state')
+
+    enable_hide_keyboard_only(context.user_data)
+    context.user_data.get('transaction_temp', {}).pop(FROM_STATION_ID, None)
+    context.user_data.get('transaction_temp', {}).pop(FROM_STATION_NAME, None)
+
+    reply_markup = InlineKeyboardMarkup(
+        generate_station_keyboard(
+            context.user_data.get(STATIONS_DATA, []),
+            context.user_data.get('transaction_temp', {}).get(FROM_STATE_NAME),
+            'add_from_station:',
+            True
+        )
+    )
+    message = (
+        f'{get_tracking_content(context.user_data.get('transaction_temp', {}), {})}'
+    )
+
+    context.user_data[LAST_MESSAGE] = await update.effective_message.edit_text(
+        message,
+        reply_markup=reply_markup,
+        parse_mode='HTML'
+    )
+
+    context.user_data['state'] = ADD_FROM_STATION
+    return ADD_FROM_STATION
+
+
+async def add_to_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    if query.data != 'add_to_station:' + BACK_DATA:
+        match = re.search('add_from_station:(.*)', query.data)
+        if match:
+            context.user_data.get('transaction_temp', {})[FROM_STATION_ID] = match.group(1)
+            context.user_data.get('transaction_temp', {})[FROM_STATION_NAME] = get_station_by_id(
+                context.user_data.get(STATIONS_DATA, []),
+                context.user_data.get('transaction_temp', {}).get(FROM_STATION_ID)
+            ).get('Description')
+        else:
+            return context.user_data.get('state')
+
+    enable_hide_keyboard_only(context.user_data)
+    context.user_data.get('transaction_temp', {}).pop(TO_STATE_NAME, None)
+
+    reply_markup = InlineKeyboardMarkup(
+        build_state_keyboard(context.user_data.get(STATIONS_DATA, []), {}, 'add_to_state:', True))
+    message = (
+        f'{get_tracking_content(context.user_data.get('transaction_temp', {}), {})}'
+        '\n'
+        'Select destination state'
+    )
+
+    context.user_data[LAST_MESSAGE] = await update.effective_message.edit_text(
+        message,
+        reply_markup=reply_markup,
+        parse_mode='HTML'
+    )
+
+    context.user_data['state'] = ADD_TO_STATE
+    return ADD_TO_STATE
+
+
+async def add_to_station(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    match = re.search('add_to_state:(.*)', query.data)
+    if match:
+        context.user_data.get('transaction_temp', {})[TO_STATE_NAME] = match.group(1)
+    else:
+        return context.user_data.get('state')
+
+    enable_cancel(context.user_data)
+    context.user_data.get('transaction_temp', {}).pop(TO_STATION_ID, None)
+    context.user_data.get('transaction_temp', {}).pop(TO_STATION_NAME, None)
+
+    reply_markup = InlineKeyboardMarkup(
+        generate_station_keyboard(
+            context.user_data.get(STATIONS_DATA, []),
+            context.user_data.get('transaction_temp', {}).get(TO_STATE_NAME),
+            'add_to_station:',
+            True
+        )
+    )
+    message = (
+        f'{get_tracking_content(context.user_data.get('transaction_temp', {}), {})}'
+    )
+
+    context.user_data[LAST_MESSAGE] = await update.effective_message.edit_text(
+        message,
+        reply_markup=reply_markup,
+        parse_mode='HTML'
+    )
+
+    context.user_data['state'] = ADD_TO_STATION
+    return ADD_TO_STATION
+
+
+async def added_shortcut(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    match = re.search('add_to_station:(.*)', query.data)
+    if match:
+        context.user_data.get('transaction_temp', {})[TO_STATION_ID] = match.group(1)
+        context.user_data.get('transaction_temp', {})[TO_STATION_NAME] = get_station_by_id(
+            context.user_data.get(STATIONS_DATA, []), context.user_data.get('transaction_temp', {})[TO_STATION_ID]
+        ).get('Description')
+    else:
+        return context.user_data.get('state')
+
+    enable_hide_keyboard_only(context.user_data)
+
+    if 'shortcuts' not in context.user_data:
+        context.user_data['shortcuts'] = {}
+
+    temp = context.user_data.get('transaction_temp', {})
+    for shortcut in context.user_data.get('shortcuts', {}).values():
+        if shortcut.get(FROM_STATE_NAME) == temp.get(FROM_STATE_NAME) \
+                and shortcut.get(FROM_STATION_ID) == temp.get(FROM_STATION_ID) \
+                and shortcut.get(FROM_STATION_NAME) == temp.get(FROM_STATION_NAME) \
+                and shortcut.get(TO_STATE_NAME) == temp.get(TO_STATE_NAME) \
+                and shortcut.get(TO_STATION_ID) == temp.get(TO_STATION_ID) \
+                and shortcut.get(TO_STATION_NAME) == temp.get(TO_STATION_NAME):
+            reply_markup = InlineKeyboardMarkup(
+                generate_station_keyboard(
+                    context.user_data.get(STATIONS_DATA, []),
+                    context.user_data.get('transaction_temp', {}).get(TO_STATE_NAME),
+                    'add_to_station:',
+                    True
+                )
+            )
+            message = (
+                f'{get_tracking_content(context.user_data.get('transaction_temp', {}), {})}'
+                '\n'
+                'Shortcut already exists. /manage_shortcut instead? Or select a different one'
+            )
+            context.user_data[LAST_MESSAGE] = await update.effective_message.edit_text(
+                message,
+                reply_markup=reply_markup,
+                parse_mode='HTML'
+            )
+            context.user_data['state'] = ADD_TO_STATION
+            return ADD_TO_STATION
+
+    shortcut_uuid = uuid.uuid4()
+    context.user_data.get('shortcuts', {})[shortcut_uuid] = {
+        FROM_STATE_NAME: context.user_data.get('transaction_temp', {})[FROM_STATE_NAME],
+        FROM_STATION_ID: context.user_data.get('transaction_temp', {})[FROM_STATION_ID],
+        FROM_STATION_NAME: context.user_data.get('transaction_temp', {})[FROM_STATION_NAME],
+        TO_STATE_NAME: context.user_data.get('transaction_temp', {})[TO_STATE_NAME],
+        TO_STATION_ID: context.user_data.get('transaction_temp', {})[TO_STATION_ID],
+        TO_STATION_NAME: context.user_data.get('transaction_temp', {})[TO_STATION_NAME]
+    }
+    context.user_data.pop('transaction_temp', None)
+
+    message = (
+        f'{get_tracking_content(context.user_data.get('transaction_temp', {}), {})}'
+        '\n'
+        'Success'
+    )
+
+    context.user_data[LAST_MESSAGE] = await update.effective_message.edit_text(
+        message,
+        reply_markup=None,
+        parse_mode='HTML'
+    )
+
+    context.user_data['state'] = START
+    return START
+
+
+async def manage_shortcut(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await context.bot.send_chat_action(
+        chat_id=update.effective_chat.id,
+        action=ChatAction.TYPING
+    )
+    await cancel_last_message(context)
+
+    enable_hide_keyboard_only(context.user_data)
+
+    reply_markup = InlineKeyboardMarkup(
+        build_shortcut_keyboard(context.user_data.get('shortcuts', {}), 'manage_shortcut:')
+    )
+    message = (
+        'Select a shortcut to manage'
+    )
+
+    context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
+        message,
+        reply_markup=reply_markup,
+        parse_mode='HTML'
+    )
+
+    context.user_data['state'] = MANAGE_SHORTCUT
+    return MANAGE_SHORTCUT
+
+
+async def selected_shortcut(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    match = re.search('manage_shortcut:(.*)', query.data)
+    if match:
+        shortcut_uuid = match.group(1)
+    else:
+        return context.user_data.get('state')
+
+    await cancel_last_message(context)
+
+    enable_hide_keyboard_only(context.user_data)
+
+    reply_markup = InlineKeyboardMarkup(
+        build_manage_shortcut_keyboard(shortcut_uuid)
+    )
+    message = (
+        'Choose an action'
+    )
+
+    context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
+        message,
+        reply_markup=reply_markup,
+        parse_mode='HTML'
+    )
+
+    context.user_data['state'] = SELECTED_SHORTCUT
+    return SELECTED_SHORTCUT
+
+
+async def deleted_shortcut(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    match = re.search('Delete Shortcut/(.*)', query.data)
+    if match:
+        shortcut_uuid = match.group(1)
+    else:
+        return context.user_data.get('state')
+
+    await cancel_last_message(context)
+
+    disable_any_cancel(context.user_data)
+
+    # logger.info(context.user_data.get('shortcuts', {}))
+    # logger.info(shortcut_uuid)
+    context.user_data.get('shortcuts', {}).pop(uuid.UUID(shortcut_uuid), None)
+    # temp = next(t for t in context.user_data.get('shortcuts', {}).keys() if t == uuid.UUID(shortcut_uuid))
+    # context.user_data['shortcuts'] = [
+    #     shortcut for shortcut in context.user_data.get('shortcuts', {}) if not
+    #     (
+    #             shortcut.get(FROM_STATE_NAME) == temp.get(FROM_STATE_NAME)
+    #             and shortcut.get(FROM_STATION_ID) == temp.get(FROM_STATION_ID)
+    #             and shortcut.get(FROM_STATION_NAME) == temp.get(FROM_STATION_NAME)
+    #             and shortcut.get(TO_STATE_NAME) == temp.get(TO_STATE_NAME)
+    #             and shortcut.get(TO_STATION_ID) == temp.get(TO_STATION_ID)
+    #             and shortcut.get(TO_STATION_NAME) == temp.get(TO_STATION_NAME)
+    #     )
+    # ]
+    # context.user_data.get('shortcuts', []).pop(context.user_data.get(uuid.UUID(shortcut_uuid)), None)
+
+    context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
+        'Shortcut deleted',
+        reply_markup=None,
+        parse_mode='HTML'
+    )
 
     context.user_data['state'] = START
     return START
@@ -151,8 +652,7 @@ async def set_email(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     )
     await cancel_last_message(context)
 
-    context.user_data[TO_STRIKETHROUGH] = False
-    context.user_data[TO_HIDE_KEYBOARD] = False
+    enable_hide_keyboard_only(context.user_data)
 
     if is_logged_in(context.user_data):
         context.user_data[LAST_MESSAGE] = await update.message.reply_text(
@@ -162,7 +662,11 @@ async def set_email(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         context.user_data['state'] = START
         return START
     else:
-        context.user_data[LAST_MESSAGE] = await update.message.reply_text('Enter your KTMB email', reply_markup=None)
+        reply_markup = InlineKeyboardMarkup(
+            build_profile_keyboard(context.user_data.get('profiles', {}), 'set_email:')
+        )
+        context.user_data[LAST_MESSAGE] = await update.message.reply_text(
+            'Enter your KTMB email, or select a profile to log in', reply_markup=reply_markup)
         context.user_data['state'] = SET_EMAIL
         return SET_EMAIL
 
@@ -176,8 +680,7 @@ async def set_password(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     )
     await cancel_last_message(context)
 
-    context.user_data[TO_STRIKETHROUGH] = False
-    context.user_data[TO_HIDE_KEYBOARD] = False
+    disable_any_cancel(context.user_data)
 
     context.user_data[LAST_MESSAGE] = await update.message.reply_text('Enter your KTMB password', reply_markup=None)
 
@@ -186,7 +689,18 @@ async def set_password(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 
 
 async def login_ktmb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data['password'] = update.message.text
+    query = update.callback_query
+    if query is None:
+        password = update.message.text
+    else:
+        await query.answer()
+        match = re.search('set_email:(.*)', query.data)  # drty
+        if match:
+            email = match.group(1)
+            context.user_data['email'] = email
+            password = context.user_data.get('profiles', {}).get(email)
+        else:
+            return context.user_data.get('state')
 
     await context.bot.send_chat_action(
         chat_id=update.effective_chat.id,
@@ -194,25 +708,24 @@ async def login_ktmb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     )
     await cancel_last_message(context)
 
-    context.user_data[TO_STRIKETHROUGH] = False
-    context.user_data[TO_HIDE_KEYBOARD] = False
+    disable_any_cancel(context.user_data)
 
     session = requests.Session()
-    res = login(session, context.user_data.get('email'), context.user_data.get('password'))
+    res = login(session, context.user_data.get('email'), password)
 
     if res.get('status'):
         context.user_data[COOKIE] = session.cookies
         context.user_data[TOKEN] = res.get('token')
-        context.user_data[LAST_MESSAGE] = await update.message.reply_text(
+        context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
             'Logged in successfully',
             reply_markup=bottom_reply_markup
         )
         context.user_data['state'] = START
         return START
     else:
-        context.user_data[LAST_MESSAGE] = await update.message.reply_text(res.get('error'), reply_markup=None)
-        context.user_data[LAST_MESSAGE] = await update.message.reply_text('Re-enter your KTMB password',
-                                                                          reply_markup=None)
+        context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(res.get('error'), reply_markup=None)
+        context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text('Re-enter your KTMB password',
+                                                                                    reply_markup=None)
         context.user_data['state'] = SET_PASSWORD
         return SET_PASSWORD
 
@@ -224,8 +737,7 @@ async def logout_ktmb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     )
     await cancel_last_message(context)
 
-    context.user_data[TO_STRIKETHROUGH] = False
-    context.user_data[TO_HIDE_KEYBOARD] = False
+    disable_any_cancel(context.user_data)
 
     session = requests.Session()
     if COOKIE in context.user_data:
@@ -271,7 +783,7 @@ async def set_from_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     enable_cancel(context.user_data)
     context.user_data['transaction'] = {}
     context.user_data['volatile'] = {}
-    context.user_data.get('transaction', {}).pop(FROM_STATE_NAME, None)
+    # context.user_data.get('transaction', {}).pop(FROM_STATE_NAME, None)
 
     session = requests.Session()
     if COOKIE in context.user_data:
@@ -279,8 +791,7 @@ async def set_from_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     res = get_stations(session)
     if not res.get('status'):
-        context.user_data[TO_STRIKETHROUGH] = True
-        context.user_data[TO_HIDE_KEYBOARD] = False
+        enable_cancel(context.user_data)
         await display_error_inline(context, res, None)
         context.user_data['state'] = SET_FROM_STATE
         return SET_FROM_STATE
@@ -288,7 +799,12 @@ async def set_from_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     context.user_data[STATIONS_DATA] = res.get(STATIONS_DATA)
 
     reply_markup = InlineKeyboardMarkup(
-        build_state_keyboard(context.user_data.get(STATIONS_DATA, []), 'set_from_state:'))
+        build_state_keyboard(
+            context.user_data.get(STATIONS_DATA, []),
+            context.user_data.get('shortcuts', {}),
+            'set_from_state:'
+        )
+    )
     message = (
         f'{get_tracking_content(context.user_data.get('transaction', {}), context.user_data.get('volatile', {}))}'
         '\n'
@@ -367,7 +883,13 @@ async def set_to_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     context.user_data.get('transaction', {}).pop(TO_STATE_NAME, None)
 
     reply_markup = InlineKeyboardMarkup(
-        build_state_keyboard(context.user_data.get(STATIONS_DATA, []), 'set_to_state:', True))
+        build_state_keyboard(
+            context.user_data.get(STATIONS_DATA, []),
+            {},
+            'set_to_state:',
+            True
+        )
+    )
     message = (
         f'{get_tracking_content(context.user_data.get('transaction', {}), context.user_data.get('volatile', {}))}'
         '\n'
@@ -431,7 +953,19 @@ async def set_date(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 context.user_data.get(STATIONS_DATA, []), context.user_data.get('transaction', {})[TO_STATION_ID]
             ).get('Description')
         else:
-            return context.user_data.get('state')
+            match = re.search(f'set_from_state:({UUID_PATTERN})', query.data)
+            if match:
+                shortcut_uuid = match.group(1)
+                t = context.user_data.get('shortcuts', {}).get(uuid.UUID(shortcut_uuid))
+                context.user_data.get('transaction', {})[FROM_STATE_NAME] = t.get(FROM_STATE_NAME)
+                context.user_data.get('transaction', {})[FROM_STATION_ID] = t.get(FROM_STATION_ID)
+                context.user_data.get('transaction', {})[FROM_STATION_NAME] = t.get(FROM_STATION_NAME)
+                context.user_data.get('transaction', {})[TO_STATE_NAME] = t.get(TO_STATE_NAME)
+                context.user_data.get('transaction', {})[TO_STATION_ID] = t.get(TO_STATION_ID)
+                context.user_data.get('transaction', {})[TO_STATION_NAME] = t.get(TO_STATION_NAME)
+            else:
+                logger.info('test')
+                return context.user_data.get('state')
 
     enable_cancel(context.user_data)
     context.user_data.get('transaction', {}).pop(DATE, None)
@@ -771,7 +1305,7 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     message = (
         f'{get_tracking_content(context.user_data.get('transaction', {}), context.user_data.get('volatile', {}), title)}'
         '\n'
-        f'<i>Refreshed at: {datetime.now().strftime('%H:%M:%S')}</i>\n'
+        f'<i>Refreshed at: {utc_to_malaysia_time(datetime.now()).strftime('%H:%M:%S')}</i>\n'
         '\n'
         f'<b>Reserve a random seat of {price_message}?</b>'
     )
@@ -885,7 +1419,7 @@ async def show_reserved(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     message = (
         f'{get_tracking_content(context.user_data.get('transaction', {}), context.user_data.get('volatile', {}), Title.NEW_RESERVATION.value)}'
         '\n'
-        f'<i>Refreshed at: {datetime.now().strftime('%H:%M:%S')}</i>\n'
+        f'<i>Refreshed at: {utc_to_malaysia_time(datetime.now()).strftime('%H:%M:%S')}</i>\n'
         '\n'
         'Seat reserved successfully!\n'
         '\n'
@@ -1019,7 +1553,7 @@ async def view_tracking(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
                 (
                     f'{get_tracking_content(t, {PARTIAL_CONTENT: partial_content}, Title.VIEW.value + str(index + 1))}'
                     '\n'
-                    f'<i>Refreshed at: {datetime.now().strftime('%H:%M:%S')}</i>\n'
+                    f'<i>Refreshed at: {utc_to_malaysia_time(datetime.now()).strftime('%H:%M:%S')}</i>\n'
                     '\n'
                     f'<b>Reserve a random seat of {price_message}?</b>'
                 ),
@@ -1185,7 +1719,7 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
                 text=(
                     f'{get_tracking_content(t, {PARTIAL_CONTENT: partial_content}, reason)}'
                     '\n'
-                    f'<i>Refreshed at: {datetime.now().strftime('%H:%M:%S')}</i>\n'
+                    f'<i>Refreshed at: {utc_to_malaysia_time(datetime.now()).strftime('%H:%M:%S')}</i>\n'
                     '\n'
                     f'<b>Reserve a random seat of {price_message}?</b>'
                 ),
@@ -1287,6 +1821,18 @@ def disable_any_cancel(data):
     data[TO_HIDE_KEYBOARD] = False
 
 
+def malaysia_time_to_utc(user_time):
+    """Convert naive Malaysia time to UTC"""
+    # First localize to Malaysia time, then convert to UTC
+    localized = MALAYSIA_TZ.localize(user_time)
+    return localized.astimezone(pytz.utc)
+
+
+def utc_to_malaysia_time(utc_time):
+    """Convert UTC time to Malaysia time"""
+    return utc_time.astimezone(MALAYSIA_TZ)
+
+
 # Create the Application and pass it your bot's token.
 persistence = PicklePersistence(filepath='ktmb_conversation_data')
 application = Application.builder().token(BOT_TOKEN).persistence(persistence).build()
@@ -1312,13 +1858,52 @@ conv_handler = ConversationHandler(
             #     pattern=f'^Cancel Reservation/{UUID_PATTERN}$'
             # ),
         ],
+        ADD_PROFILE: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, add_profile_password)
+        ],
+        ADD_PROFILE_PASSWORD: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, added_profile_password)
+        ],
+        MANAGE_PROFILE: [
+            CallbackQueryHandler(selected_profile, pattern='^manage_profile:')
+        ],
+        SELECTED_PROFILE: [
+            CallbackQueryHandler(change_profile_password, pattern='^Change Password/'),
+            CallbackQueryHandler(deleted_profile, pattern='^Delete/')
+        ],
+        CHANGE_PROFILE_PASSWORD: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, added_profile_password)
+        ],
+        ADD_FROM_STATE: [
+            CallbackQueryHandler(add_from_station, pattern='^add_from_state:')
+        ],
+        ADD_FROM_STATION: [
+            CallbackQueryHandler(add_from_state, pattern='add_from_station:Back'),
+            CallbackQueryHandler(add_to_state, pattern='^add_from_station:')
+        ],
+        ADD_TO_STATE: [
+            CallbackQueryHandler(add_from_station, pattern='add_to_state:Back'),
+            CallbackQueryHandler(add_to_station, pattern='^add_to_state:')
+        ],
+        ADD_TO_STATION: [
+            CallbackQueryHandler(add_to_state, pattern='add_to_station:Back'),
+            CallbackQueryHandler(added_shortcut, pattern='^add_to_station:')
+        ],
+        MANAGE_SHORTCUT: [
+            CallbackQueryHandler(selected_shortcut, pattern='^manage_shortcut:')
+        ],
+        SELECTED_SHORTCUT: [
+            CallbackQueryHandler(deleted_shortcut, pattern='^Delete Shortcut/')
+        ],
         SET_EMAIL: [
-            MessageHandler(filters.TEXT & ~filters.COMMAND, set_password)
+            MessageHandler(filters.TEXT & ~filters.COMMAND, set_password),
+            CallbackQueryHandler(login_ktmb, pattern='^set_email:')
         ],
         SET_PASSWORD: [
             MessageHandler(filters.TEXT & ~filters.COMMAND, login_ktmb)
         ],
         SET_FROM_STATE: [
+            CallbackQueryHandler(set_date, pattern=f'^set_from_state:{UUID_PATTERN}'),
             CallbackQueryHandler(set_from_station, pattern='^set_from_state:')
         ],
         SET_FROM_STATION: [
@@ -1373,8 +1958,12 @@ conv_handler = ConversationHandler(
     },
     fallbacks=[
         CommandHandler('start', start),
+        CommandHandler('add', add_profile),
+        CommandHandler('manage', manage_profile),
         CommandHandler('login', set_email),
         CommandHandler('logout', logout_ktmb),
+        CommandHandler('add_shortcut', add_from_state),
+        CommandHandler('manage_shortcut', manage_shortcut),
         CommandHandler('clear', clear),
         MessageHandler(filters.Text([NEW]), set_from_state),
         MessageHandler(filters.Text([VIEW]), view_tracking),

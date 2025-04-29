@@ -46,7 +46,59 @@ class Title(Enum):
     VIEW = '✴️ Tracking '
 
 
-def build_state_keyboard(stations_data, prefix='', back=False):
+def build_profile_keyboard(profiles, prefix=''):
+    keyboard = []
+
+    for email in profiles.keys():
+        keyboard.append([
+            InlineKeyboardButton(
+                email,
+                callback_data=prefix + email
+            )
+        ])
+
+    return keyboard
+
+
+def build_manage_profile_keyboard(email, prefix=''):
+    keyboard = [
+        [
+            # InlineKeyboardButton('🎟 Reserve', callback_data=f'Reserve/{uuid}'),
+            InlineKeyboardButton('Change Password', callback_data=f'Change Password/{email}')
+        ],
+        [
+            InlineKeyboardButton('Delete', callback_data=f'Delete/{email}')
+        ]
+    ]
+
+    return keyboard
+
+
+def build_shortcut_keyboard(shortcuts, prefix=''):
+    keyboard = []
+
+    for key, value in shortcuts.items():
+        keyboard.append([
+            InlineKeyboardButton(
+                value.get(FROM_STATION_NAME) + ' ➡️ ' + value.get(TO_STATION_NAME),
+                callback_data=prefix + str(key)
+            )
+        ])
+
+    return keyboard
+
+
+def build_manage_shortcut_keyboard(shortcut_uuid, prefix=''):
+    keyboard = [
+        [
+            InlineKeyboardButton('Delete', callback_data=f'Delete Shortcut/{shortcut_uuid}')
+        ]
+    ]
+
+    return keyboard
+
+
+def build_state_keyboard(stations_data, shortcuts, prefix='', back=False):
     keyboard = []
     row = []
 
@@ -70,6 +122,14 @@ def build_state_keyboard(stations_data, prefix='', back=False):
     # Add any remaining buttons in temp_row
     if row:
         keyboard.append(row)
+
+    for key, value in shortcuts.items():
+        keyboard.append([
+            InlineKeyboardButton(
+                value.get(FROM_STATION_NAME) + ' ➡️ ' + value.get(TO_STATION_NAME),
+                callback_data=prefix + str(key)
+            )
+        ])
 
     if back:
         keyboard.append([
