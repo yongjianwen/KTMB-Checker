@@ -8,35 +8,54 @@ from datetime import datetime, timedelta, time
 
 import pytz
 import requests
+from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
 from flask import Flask, request
-from telegram import InlineKeyboardMarkup, Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import InlineKeyboardMarkup, Update, ReplyKeyboardRemove
 from telegram.constants import ChatAction
 from telegram.ext import (
     Application,
     CallbackQueryHandler,
     CommandHandler,
     ContextTypes,
-    ConversationHandler, PicklePersistence, MessageHandler, filters,
+    ConversationHandler, PicklePersistence, MessageHandler, filters
 )
-from apscheduler.schedulers.background import BackgroundScheduler
 
-from bot_helper import get_seats_contents, cancel_last_message, reply_error, clear_session_data, display_error_inline
-from ktmb import get_station_by_id, login, get_trips, logout, get_stations, reserve_by_price, cancel_reservation
-from utils import BACK_DATA, COOKIE, TOKEN, LAST_MESSAGE, TO_STRIKETHROUGH, STATIONS_DATA, FROM_STATE_NAME, \
+from services.ktmb import (
+    login, logout,
+    get_stations,
+    get_trips,
+    reserve_by_price,
+    cancel_reservation
+)
+from utils.bot_helper import (
+    strikethrough_last_message, show_error_inline, show_error_reply,
+    enable_strikethrough, enable_hide_keyboard_only, disable_strikethrough,
+    clear_session_data
+)
+from utils.constants import BACK_DATA, COOKIE, TOKEN, LAST_MESSAGE, TO_STRIKETHROUGH, STATIONS_DATA, FROM_STATE_NAME, \
     TO_STATE_NAME, FROM_STATION_ID, TO_STATION_ID, FROM_STATION_NAME, TO_STATION_NAME, DATE, PARTIAL_CONTENT, \
     SEARCH_DATA, TRIPS_DATA, TRIP_DATA, DEPARTURE_TIME, ARRIVAL_TIME, LAYOUT_DATA, PRICE, TRACKING_LIST, RESERVED_SEAT, \
-    Title, UUID_PATTERN, TO_HIDE_KEYBOARD, build_profile_keyboard, build_manage_profile_keyboard, \
-    build_shortcut_keyboard, build_manage_shortcut_keyboard
-from utils import build_state_keyboard, generate_station_keyboard, generate_friday_keyboard, generate_trips_keyboard, \
-    generate_tracking_keyboard, generate_reserve_keyboard, generate_reserved_keyboard, get_tracking_content
+    Title, UUID_PATTERN, TO_HIDE_KEYBOARD, TRACK_NEW_TRAIN, VIEW_TRACKING
+from utils.file_manager import upload_file_to_s3, download_file_from_s3
+from utils.keyboard_helper import (
+    build_bottom_reply_markup,
+    build_profiles_keyboard, build_profile_actions_keyboard,
+    build_shortcuts_keyboard, build_shortcut_actions_keyboard,
+    build_states_keyboard, build_stations_keyboard,
+    build_dates_keyboard, build_timings_keyboard,
+    build_tracking_prices_keyboard,
+    build_tracked_actions_keyboard,
+    build_reserved_actions_keyboard,
+)
+from utils.ktmb_helper import get_station_by_id, get_seats_contents, get_tracking_content
 
 # Environment variables
 load_dotenv()
-ENV = os.getenv('ENV')
+AWS_S3_BUCKET_NAME = os.getenv('AWS_S3_BUCKET_NAME')
 BOT_TOKEN = os.getenv('BOT_TOKEN')
+ENV = os.getenv('ENV')
 
-# Logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
 )
@@ -62,13 +81,6 @@ logger.info('ENV: ' + ENV)
     RESERVED
 ) = range(23)
 
-# Bottom keyboard
-NEW, VIEW = 'Track New Train 🚈', '👀 View Tracking'
-bottom_keyboard = [
-    [NEW, VIEW]
-]
-bottom_reply_markup = ReplyKeyboardMarkup(bottom_keyboard, one_time_keyboard=False, resize_keyboard=True)
-
 app = Flask(__name__)
 
 # Initialize only once
@@ -76,13 +88,7 @@ initialized = False
 
 MALAYSIA_TZ = pytz.timezone('Asia/Kuala_Lumpur')
 
-
-def my_job(context, data, chat_id):
-    logger.info("Job is running")
-
-
 scheduler = BackgroundScheduler()
-# scheduler.add_job(my_job, 'interval', seconds=10)
 scheduler.start()
 
 
@@ -132,7 +138,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         chat_id=update.effective_chat.id,
         action=ChatAction.TYPING
     )
-    await cancel_last_message(context)
+    await strikethrough_last_message(context)
 
     enable_hide_keyboard_only(context.user_data)
 
@@ -149,13 +155,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     context.user_data[LAST_MESSAGE] = await update.message.reply_text(
         message,
-        reply_markup=bottom_reply_markup if is_logged_in(context.user_data) else None
+        reply_markup=build_bottom_reply_markup() if is_logged_in(context.user_data) else None
     )
 
     if not is_logged_in(context.user_data):
         await asyncio.sleep(1)  # 1 second delay
         reply_markup = InlineKeyboardMarkup(
-            build_profile_keyboard(context.user_data.get('profiles', {}), 'set_email:')
+            build_profiles_keyboard(context.user_data.get('profiles', {}), 'set_email:')
         )
         context.user_data[LAST_MESSAGE] = await update.message.reply_text(
             'Enter your KTMB email, or select a profile to log in', reply_markup=reply_markup)
@@ -171,9 +177,9 @@ async def add_profile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         chat_id=update.effective_chat.id,
         action=ChatAction.TYPING
     )
-    await cancel_last_message(context)
+    await strikethrough_last_message(context)
 
-    disable_any_cancel(context.user_data)
+    disable_strikethrough(context.user_data)
 
     context.user_data[LAST_MESSAGE] = await update.message.reply_text(
         'Key in email',
@@ -192,9 +198,9 @@ async def add_profile_password(update: Update, context: ContextTypes.DEFAULT_TYP
         chat_id=update.effective_chat.id,
         action=ChatAction.TYPING
     )
-    await cancel_last_message(context)
+    await strikethrough_last_message(context)
 
-    disable_any_cancel(context.user_data)
+    disable_strikethrough(context.user_data)
 
     if context.user_data.get('profiles', {}).get(email_temp):
         context.user_data[LAST_MESSAGE] = await update.message.reply_text(
@@ -220,9 +226,9 @@ async def added_profile_password(update: Update, context: ContextTypes.DEFAULT_T
         chat_id=update.effective_chat.id,
         action=ChatAction.TYPING
     )
-    await cancel_last_message(context)
+    await strikethrough_last_message(context)
 
-    disable_any_cancel(context.user_data)
+    disable_strikethrough(context.user_data)
 
     if 'profiles' not in context.user_data:
         context.user_data['profiles'] = {}
@@ -245,12 +251,12 @@ async def manage_profile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         chat_id=update.effective_chat.id,
         action=ChatAction.TYPING
     )
-    await cancel_last_message(context)
+    await strikethrough_last_message(context)
 
     enable_hide_keyboard_only(context.user_data)
 
     reply_markup = InlineKeyboardMarkup(
-        build_profile_keyboard(context.user_data.get('profiles', {}), 'manage_profile:')
+        build_profiles_keyboard(context.user_data.get('profiles', {}), 'manage_profile:')
     )
     message = (
         'Select a profile to manage'
@@ -274,12 +280,12 @@ async def selected_profile(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     else:
         return context.user_data.get('state')
 
-    await cancel_last_message(context)
+    await strikethrough_last_message(context)
 
     enable_hide_keyboard_only(context.user_data)
 
     reply_markup = InlineKeyboardMarkup(
-        build_manage_profile_keyboard(context.user_data['email_temp'])
+        build_profile_actions_keyboard(context.user_data['email_temp'])
     )
     message = (
         'Choose an action'
@@ -296,9 +302,9 @@ async def selected_profile(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 
 async def change_profile_password(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await cancel_last_message(context)
+    await strikethrough_last_message(context)
 
-    disable_any_cancel(context.user_data)
+    disable_strikethrough(context.user_data)
 
     context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
         'Key in new password',
@@ -311,9 +317,9 @@ async def change_profile_password(update: Update, context: ContextTypes.DEFAULT_
 
 
 async def deleted_profile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await cancel_last_message(context)
+    await strikethrough_last_message(context)
 
-    disable_any_cancel(context.user_data)
+    disable_strikethrough(context.user_data)
 
     context.user_data.get('profiles', {}).pop(context.user_data.get('email_temp'), None)
 
@@ -335,7 +341,7 @@ async def add_from_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             chat_id=update.effective_chat.id,
             action=ChatAction.TYPING
         )
-        await cancel_last_message(context)
+        await strikethrough_last_message(context)
     else:
         await query.answer()
 
@@ -348,15 +354,15 @@ async def add_from_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     res = get_stations(session)
     if not res.get('status'):
-        enable_cancel(context.user_data)
-        await display_error_inline(context, res, None)
+        enable_strikethrough(context.user_data)
+        await show_error_inline(context, res, None)
         context.user_data['state'] = START
         return START
 
     context.user_data[STATIONS_DATA] = res.get(STATIONS_DATA)
 
     reply_markup = InlineKeyboardMarkup(
-        build_state_keyboard(context.user_data.get(STATIONS_DATA, []), {}, 'add_from_state:'))
+        build_states_keyboard(context.user_data.get(STATIONS_DATA, []), {}, 'add_from_state:'))
     message = (
         f'{get_tracking_content(context.user_data.get('transaction', {}), {})}'
         '\n'
@@ -397,7 +403,7 @@ async def add_from_station(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     context.user_data.get('transaction_temp', {}).pop(FROM_STATION_NAME, None)
 
     reply_markup = InlineKeyboardMarkup(
-        generate_station_keyboard(
+        build_stations_keyboard(
             context.user_data.get(STATIONS_DATA, []),
             context.user_data.get('transaction_temp', {}).get(FROM_STATE_NAME),
             'add_from_station:',
@@ -436,7 +442,7 @@ async def add_to_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     context.user_data.get('transaction_temp', {}).pop(TO_STATE_NAME, None)
 
     reply_markup = InlineKeyboardMarkup(
-        build_state_keyboard(context.user_data.get(STATIONS_DATA, []), {}, 'add_to_state:', True))
+        build_states_keyboard(context.user_data.get(STATIONS_DATA, []), {}, 'add_to_state:', True))
     message = (
         f'{get_tracking_content(context.user_data.get('transaction_temp', {}), {})}'
         '\n'
@@ -462,12 +468,12 @@ async def add_to_station(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     else:
         return context.user_data.get('state')
 
-    enable_cancel(context.user_data)
+    enable_strikethrough(context.user_data)
     context.user_data.get('transaction_temp', {}).pop(TO_STATION_ID, None)
     context.user_data.get('transaction_temp', {}).pop(TO_STATION_NAME, None)
 
     reply_markup = InlineKeyboardMarkup(
-        generate_station_keyboard(
+        build_stations_keyboard(
             context.user_data.get(STATIONS_DATA, []),
             context.user_data.get('transaction_temp', {}).get(TO_STATE_NAME),
             'add_to_station:',
@@ -514,7 +520,7 @@ async def added_shortcut(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 and shortcut.get(TO_STATION_ID) == temp.get(TO_STATION_ID) \
                 and shortcut.get(TO_STATION_NAME) == temp.get(TO_STATION_NAME):
             reply_markup = InlineKeyboardMarkup(
-                generate_station_keyboard(
+                build_stations_keyboard(
                     context.user_data.get(STATIONS_DATA, []),
                     context.user_data.get('transaction_temp', {}).get(TO_STATE_NAME),
                     'add_to_station:',
@@ -566,12 +572,12 @@ async def manage_shortcut(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         chat_id=update.effective_chat.id,
         action=ChatAction.TYPING
     )
-    await cancel_last_message(context)
+    await strikethrough_last_message(context)
 
     enable_hide_keyboard_only(context.user_data)
 
     reply_markup = InlineKeyboardMarkup(
-        build_shortcut_keyboard(context.user_data.get('shortcuts', {}), 'manage_shortcut:')
+        build_shortcuts_keyboard(context.user_data.get('shortcuts', {}), 'manage_shortcut:')
     )
     message = (
         'Select a shortcut to manage'
@@ -595,12 +601,12 @@ async def selected_shortcut(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     else:
         return context.user_data.get('state')
 
-    await cancel_last_message(context)
+    await strikethrough_last_message(context)
 
     enable_hide_keyboard_only(context.user_data)
 
     reply_markup = InlineKeyboardMarkup(
-        build_manage_shortcut_keyboard(shortcut_uuid)
+        build_shortcut_actions_keyboard(shortcut_uuid)
     )
     message = (
         'Choose an action'
@@ -624,9 +630,9 @@ async def deleted_shortcut(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     else:
         return context.user_data.get('state')
 
-    await cancel_last_message(context)
+    await strikethrough_last_message(context)
 
-    disable_any_cancel(context.user_data)
+    disable_strikethrough(context.user_data)
 
     # logger.info(context.user_data.get('shortcuts', {}))
     # logger.info(shortcut_uuid)
@@ -660,7 +666,7 @@ async def set_email(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         chat_id=update.effective_chat.id,
         action=ChatAction.TYPING
     )
-    await cancel_last_message(context)
+    await strikethrough_last_message(context)
 
     enable_hide_keyboard_only(context.user_data)
 
@@ -673,7 +679,7 @@ async def set_email(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         return START
     else:
         reply_markup = InlineKeyboardMarkup(
-            build_profile_keyboard(context.user_data.get('profiles', {}), 'set_email:')
+            build_profiles_keyboard(context.user_data.get('profiles', {}), 'set_email:')
         )
         context.user_data[LAST_MESSAGE] = await update.message.reply_text(
             'Enter your KTMB email, or select a profile to log in', reply_markup=reply_markup)
@@ -688,9 +694,9 @@ async def set_password(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         chat_id=update.effective_chat.id,
         action=ChatAction.TYPING
     )
-    await cancel_last_message(context)
+    await strikethrough_last_message(context)
 
-    disable_any_cancel(context.user_data)
+    disable_strikethrough(context.user_data)
 
     context.user_data[LAST_MESSAGE] = await update.message.reply_text('Enter your KTMB password', reply_markup=None)
 
@@ -716,9 +722,9 @@ async def login_ktmb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         chat_id=update.effective_chat.id,
         action=ChatAction.TYPING
     )
-    await cancel_last_message(context)
+    await strikethrough_last_message(context)
 
-    disable_any_cancel(context.user_data)
+    disable_strikethrough(context.user_data)
 
     session = requests.Session()
     res = login(session, context.user_data.get('email'), password)
@@ -728,7 +734,7 @@ async def login_ktmb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         context.user_data[TOKEN] = res.get('token')
         context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
             'Logged in successfully',
-            reply_markup=bottom_reply_markup
+            reply_markup=build_bottom_reply_markup()
         )
         context.user_data['state'] = START
         return START
@@ -745,9 +751,9 @@ async def logout_ktmb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         chat_id=update.effective_chat.id,
         action=ChatAction.TYPING
     )
-    await cancel_last_message(context)
+    await strikethrough_last_message(context)
 
-    disable_any_cancel(context.user_data)
+    disable_strikethrough(context.user_data)
 
     session = requests.Session()
     if COOKIE in context.user_data:
@@ -786,11 +792,11 @@ async def set_from_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             chat_id=update.effective_chat.id,
             action=ChatAction.TYPING
         )
-        await cancel_last_message(context)
+        await strikethrough_last_message(context)
     else:
         await query.answer()
 
-    enable_cancel(context.user_data)
+    enable_strikethrough(context.user_data)
     context.user_data['transaction'] = {}
     context.user_data['volatile'] = {}
     # context.user_data.get('transaction', {}).pop(FROM_STATE_NAME, None)
@@ -801,15 +807,15 @@ async def set_from_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     res = get_stations(session)
     if not res.get('status'):
-        enable_cancel(context.user_data)
-        await display_error_inline(context, res, None)
+        enable_strikethrough(context.user_data)
+        await show_error_inline(context, res, None)
         context.user_data['state'] = SET_FROM_STATE
         return SET_FROM_STATE
 
     context.user_data[STATIONS_DATA] = res.get(STATIONS_DATA)
 
     reply_markup = InlineKeyboardMarkup(
-        build_state_keyboard(
+        build_states_keyboard(
             context.user_data.get(STATIONS_DATA, []),
             context.user_data.get('shortcuts', {}),
             'set_from_state:'
@@ -850,12 +856,12 @@ async def set_from_station(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         else:
             return context.user_data.get('state')
 
-    enable_cancel(context.user_data)
+    enable_strikethrough(context.user_data)
     context.user_data.get('transaction', {}).pop(FROM_STATION_ID, None)
     context.user_data.get('transaction', {}).pop(FROM_STATION_NAME, None)
 
     reply_markup = InlineKeyboardMarkup(
-        generate_station_keyboard(
+        build_stations_keyboard(
             context.user_data.get(STATIONS_DATA, []),
             context.user_data.get('transaction', {}).get(FROM_STATE_NAME),
             'set_from_station:',
@@ -889,11 +895,11 @@ async def set_to_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         else:
             return context.user_data.get('state')
 
-    enable_cancel(context.user_data)
+    enable_strikethrough(context.user_data)
     context.user_data.get('transaction', {}).pop(TO_STATE_NAME, None)
 
     reply_markup = InlineKeyboardMarkup(
-        build_state_keyboard(
+        build_states_keyboard(
             context.user_data.get(STATIONS_DATA, []),
             {},
             'set_to_state:',
@@ -926,12 +932,12 @@ async def set_to_station(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         else:
             return context.user_data.get('state')
 
-    enable_cancel(context.user_data)
+    enable_strikethrough(context.user_data)
     context.user_data.get('transaction', {}).pop(TO_STATION_ID, None)
     context.user_data.get('transaction', {}).pop(TO_STATION_NAME, None)
 
     reply_markup = InlineKeyboardMarkup(
-        generate_station_keyboard(
+        build_stations_keyboard(
             context.user_data.get(STATIONS_DATA, []),
             context.user_data.get('transaction', {}).get(TO_STATE_NAME),
             'set_to_station:',
@@ -977,10 +983,10 @@ async def set_date(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 logger.info('test')
                 return context.user_data.get('state')
 
-    enable_cancel(context.user_data)
+    enable_strikethrough(context.user_data)
     context.user_data.get('transaction', {}).pop(DATE, None)
 
-    reply_markup = InlineKeyboardMarkup(generate_friday_keyboard('set_date:', True))
+    reply_markup = InlineKeyboardMarkup(build_dates_keyboard('set_date:', True))
     message = (
         f'{get_tracking_content(context.user_data.get('transaction', {}), context.user_data.get('volatile', {}))}'
         '\n'
@@ -1014,7 +1020,7 @@ async def set_trip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     year, month, day = context.user_data.get('transaction', {}).get(DATE).split('-')
 
-    enable_cancel(context.user_data)
+    enable_strikethrough(context.user_data)
     context.user_data.get('transaction', {}).pop(DEPARTURE_TIME, None)
     context.user_data.get('transaction', {}).pop(ARRIVAL_TIME, None)
     context.user_data.get('volatile', {}).pop(PARTIAL_CONTENT, None)
@@ -1039,7 +1045,7 @@ async def set_trip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if not res.get('status'):
         context.user_data[TO_STRIKETHROUGH] = True
         context.user_data[TO_HIDE_KEYBOARD] = False
-        await display_error_inline(context, res, InlineKeyboardMarkup(generate_friday_keyboard('set_date:', True)))
+        await show_error_inline(context, res, InlineKeyboardMarkup(build_dates_keyboard('set_date:', True)))
         context.user_data.get('transaction', {}).pop(DATE, None)
         context.user_data['state'] = SET_DATE
         return SET_DATE
@@ -1050,7 +1056,7 @@ async def set_trip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     # logger.info(context.user_data.get('volatile', {})[TRIPS_DATA])
 
     reply_markup = InlineKeyboardMarkup(
-        generate_trips_keyboard(
+        build_timings_keyboard(
             context.user_data.get('volatile', {}).get(TRIPS_DATA),
             'set_trip:',
             True
@@ -1093,7 +1099,7 @@ async def set_track(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     else:
         return context.user_data.get('state')
 
-    enable_cancel(context.user_data)
+    enable_strikethrough(context.user_data)
 
     session = requests.Session()
     if COOKIE in context.user_data:
@@ -1108,11 +1114,11 @@ async def set_track(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if not res.get('status'):
         context.user_data[TO_STRIKETHROUGH] = True
         context.user_data[TO_HIDE_KEYBOARD] = False
-        await display_error_inline(
+        await show_error_inline(
             context,
             res,
             InlineKeyboardMarkup(
-                generate_trips_keyboard(
+                build_timings_keyboard(
                     context.user_data.get('volatile', {}).get(TRIPS_DATA),
                     'set_trip:',
                     True
@@ -1130,7 +1136,7 @@ async def set_track(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data.get('volatile', {})[PARTIAL_CONTENT] = res.get(PARTIAL_CONTENT)
 
     reply_markup = InlineKeyboardMarkup(
-        generate_tracking_keyboard(context.user_data.get('volatile', {})['overall_prices'], 'set_track:', True))
+        build_tracking_prices_keyboard(context.user_data.get('volatile', {})['overall_prices'], 'set_track:', True))
     message = (
         f'{get_tracking_content(context.user_data.get('transaction', {}), context.user_data.get('volatile', {}))}'
         '\n'
@@ -1207,10 +1213,10 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         if not res.get('status'):
             context.user_data[TO_STRIKETHROUGH] = False
             context.user_data[TO_HIDE_KEYBOARD] = True
-            await display_error_inline(
+            await show_error_inline(
                 context,
                 res,
-                InlineKeyboardMarkup(generate_reserved_keyboard(tracking_uuid))
+                InlineKeyboardMarkup(build_reserved_actions_keyboard(tracking_uuid))
             )
             context.user_data['state'] = VIEW_TRACK
             return VIEW_TRACK
@@ -1237,12 +1243,13 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         context.user_data[TO_HIDE_KEYBOARD] = False
         context.user_data.get('volatile', {}).pop(PARTIAL_CONTENT, None)
         context.user_data[TRACKING_LIST].pop()
-        await display_error_inline(
+        await show_error_inline(
             context,
             res,
             InlineKeyboardMarkup(
                 # generate_tracking_keyboard(context.user_data.get('volatile', {})['overall_prices'], True)
-                generate_tracking_keyboard(context.user_data.get('volatile', {})['overall_prices'], 'set_track:', True)
+                build_tracking_prices_keyboard(context.user_data.get('volatile', {})['overall_prices'], 'set_track:',
+                                               True)
             )
         )
         context.user_data['state'] = SET_TRACK
@@ -1326,13 +1333,14 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
             logger.error(e)
             context.user_data[TO_STRIKETHROUGH] = False
             context.user_data[TO_HIDE_KEYBOARD] = True
-            await display_error_inline(
+            await show_error_inline(
                 context,
                 {'error': 'Job scheduling error'},
                 InlineKeyboardMarkup(
                     # generate_tracking_keyboard(context.user_data.get('volatile', {})['overall_prices'], True)
-                    generate_tracking_keyboard(context.user_data.get('volatile', {})['overall_prices'], 'set_track:',
-                                               True)
+                    build_tracking_prices_keyboard(context.user_data.get('volatile', {})['overall_prices'],
+                                                   'set_track:',
+                                                   True)
                 )
             )
             context.user_data['state'] = SET_TRACK
@@ -1340,7 +1348,7 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
 
     logger.info('Number of jobs: ' + str(len(context.job_queue.jobs())))
 
-    reply_markup = InlineKeyboardMarkup(generate_reserve_keyboard(tracking_uuid))
+    reply_markup = InlineKeyboardMarkup(build_tracked_actions_keyboard(tracking_uuid))
     price_message = 'any price' \
         if context.user_data.get('transaction', {}).get(PRICE) == -1 \
         else f'RM {context.user_data.get('transaction', {}).get(PRICE)}'
@@ -1405,10 +1413,10 @@ async def show_reserved(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         context.user_data[TO_STRIKETHROUGH] = False
         context.user_data[TO_HIDE_KEYBOARD] = True
         context.user_data.get('volatile', {}).pop(PARTIAL_CONTENT, None)
-        await display_error_inline(
+        await show_error_inline(
             context,
             res,
-            InlineKeyboardMarkup(generate_reserve_keyboard(tracking_uuid))
+            InlineKeyboardMarkup(build_tracked_actions_keyboard(tracking_uuid))
         )
         context.user_data['state'] = VIEW_TRACK
         return VIEW_TRACK
@@ -1429,10 +1437,10 @@ async def show_reserved(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         if not res.get('status'):
             context.user_data[TO_STRIKETHROUGH] = False
             context.user_data[TO_HIDE_KEYBOARD] = True
-            await display_error_inline(
+            await show_error_inline(
                 context,
                 res,
-                InlineKeyboardMarkup(generate_reserve_keyboard(tracking_uuid))
+                InlineKeyboardMarkup(build_tracked_actions_keyboard(tracking_uuid))
             )
             context.user_data['state'] = VIEW_TRACK
             return VIEW_TRACK
@@ -1457,7 +1465,7 @@ async def show_reserved(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
     t = next(tr for tr in context.user_data.get(TRACKING_LIST, []) if tr.get('uuid') == uuid.UUID(tracking_uuid))
 
-    reply_markup = InlineKeyboardMarkup(generate_reserved_keyboard(tracking_uuid))
+    reply_markup = InlineKeyboardMarkup(build_reserved_actions_keyboard(tracking_uuid))
     message = (
         f'{get_tracking_content(context.user_data.get('transaction', {}), context.user_data.get('volatile', {}), Title.NEW_RESERVATION.value)}'
         '\n'
@@ -1491,18 +1499,18 @@ async def cancel_tracking(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     job_removed = remove_job_if_exists(tracking_uuid, context)
     logger.info(job_removed)
 
-    enable_cancel(context.user_data)
+    enable_strikethrough(context.user_data)
 
-    await cancel_last_message(context)
+    await strikethrough_last_message(context)
 
-    disable_any_cancel(context.user_data)
+    disable_strikethrough(context.user_data)
 
     context.user_data['state'] = START
     return START
 
 
 async def view_tracking(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await cancel_last_message(context)
+    await strikethrough_last_message(context)
 
     enable_hide_keyboard_only(context.user_data)
 
@@ -1525,7 +1533,7 @@ async def view_tracking(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
     res = get_stations(session)
     if not res.get('status'):
-        await reply_error(update, context, res)
+        await show_error_reply(update, context, res)
         context.user_data['state'] = START
         return START
 
@@ -1560,7 +1568,7 @@ async def view_tracking(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
             context.user_data.get(TOKEN)
         )
         if not res.get('status'):
-            await reply_error(update, context, res)
+            await show_error_reply(update, context, res)
             context.user_data['state'] = START
             return START
         # logger.info('trips_res:', trips_res)
@@ -1582,14 +1590,14 @@ async def view_tracking(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
             context.user_data.get(TOKEN)
         )
         if not res.get('status'):
-            await reply_error(update, context, res)
+            await show_error_reply(update, context, res)
             context.user_data['state'] = START
             return START
 
         partial_content = res.get(PARTIAL_CONTENT)
 
         if reserved_seat is None:
-            reply_markup = InlineKeyboardMarkup(generate_reserve_keyboard(tracking_uuid))
+            reply_markup = InlineKeyboardMarkup(build_tracked_actions_keyboard(tracking_uuid))
             price_message = 'any price' if price == -1 else f'RM {price}'
             context.user_data[LAST_MESSAGE] = await update.message.reply_text(
                 (
@@ -1603,7 +1611,7 @@ async def view_tracking(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
                 parse_mode='HTML'
             )
         else:
-            reply_markup = InlineKeyboardMarkup(generate_reserved_keyboard(tracking_uuid))
+            reply_markup = InlineKeyboardMarkup(build_reserved_actions_keyboard(tracking_uuid))
             context.user_data[LAST_MESSAGE] = await update.message.reply_text(
                 (
                     f'{get_tracking_content(t, {PARTIAL_CONTENT: partial_content}, Title.VIEW.value + str(index + 1))}'
@@ -1819,9 +1827,9 @@ async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         chat_id=update.effective_chat.id,
         action=ChatAction.TYPING
     )
-    await cancel_last_message(context)
+    await strikethrough_last_message(context)
 
-    disable_any_cancel(context.user_data)
+    disable_strikethrough(context.user_data)
 
     session = requests.Session()
     if COOKIE in context.user_data:
@@ -1855,7 +1863,7 @@ async def print_unknown(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     )
     # await cancel_last_message(context)
 
-    disable_any_cancel(context.user_data)
+    disable_strikethrough(context.user_data)
 
     message = query.data
 
@@ -1865,19 +1873,42 @@ async def print_unknown(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     return START
 
 
-def enable_cancel(data):
-    data[TO_STRIKETHROUGH] = True
-    data[TO_HIDE_KEYBOARD] = True
+async def upload_conversation_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await context.bot.send_chat_action(
+        chat_id=update.effective_chat.id,
+        action=ChatAction.TYPING
+    )
+    await strikethrough_last_message(context)
+
+    disable_strikethrough(context.user_data)
+
+    res = upload_file_to_s3('ktmb_conversation_data', AWS_S3_BUCKET_NAME, 'ktmb_conversation_data')
+
+    message = 'Backup successful' if res else 'Backup failed'
+
+    context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(message, reply_markup=None)
+
+    context.user_data['state'] = START
+    return START
 
 
-def enable_hide_keyboard_only(data):
-    data[TO_STRIKETHROUGH] = False
-    data[TO_HIDE_KEYBOARD] = True
+async def download_conversation_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await context.bot.send_chat_action(
+        chat_id=update.effective_chat.id,
+        action=ChatAction.TYPING
+    )
+    await strikethrough_last_message(context)
 
+    disable_strikethrough(context.user_data)
 
-def disable_any_cancel(data):
-    data[TO_STRIKETHROUGH] = False
-    data[TO_HIDE_KEYBOARD] = False
+    res = download_file_from_s3(AWS_S3_BUCKET_NAME, 'ktmb_conversation_data', 'ktmb_conversation_data')
+
+    message = 'Restore successful' if res else 'Restore failed'
+
+    context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(message, reply_markup=None)
+
+    context.user_data['state'] = START
+    return START
 
 
 def malaysia_time_to_utc(user_time):
@@ -1899,24 +1930,7 @@ application = Application.builder().token(BOT_TOKEN).persistence(persistence).bu
 conv_handler = ConversationHandler(
     entry_points=[CommandHandler('start', start)],
     states={
-        START: [
-            # CallbackQueryHandler(
-            #     show_reserved,
-            #     pattern=f'^Reserve/{UUID_PATTERN}$'
-            # ),
-            # CallbackQueryHandler(
-            #     set_reserve,
-            #     pattern=f'^Refresh/{UUID_PATTERN}$'
-            # ),
-            # CallbackQueryHandler(
-            #     cancel_tracking,
-            #     pattern=f'^Cancel Tracking/{UUID_PATTERN}$'
-            # ),
-            # CallbackQueryHandler(
-            #     set_reserve,
-            #     pattern=f'^Cancel Reservation/{UUID_PATTERN}$'
-            # ),
-        ],
+        START: [],
         ADD_PROFILE: [
             MessageHandler(filters.TEXT & ~filters.COMMAND, add_profile_password)
         ],
@@ -2024,8 +2038,10 @@ conv_handler = ConversationHandler(
         CommandHandler('add_shortcut', add_from_state),
         CommandHandler('manage_shortcut', manage_shortcut),
         CommandHandler('clear', clear),
-        MessageHandler(filters.Text([NEW]), set_from_state),
-        MessageHandler(filters.Text([VIEW]), view_tracking),
+        CommandHandler('backup', upload_conversation_data),
+        # CommandHandler('restore', download_conversation_data),
+        MessageHandler(filters.Text([TRACK_NEW_TRAIN]), set_from_state),
+        MessageHandler(filters.Text([VIEW_TRACKING]), view_tracking),
         CallbackQueryHandler(print_unknown)
     ],
     name='ktmb_conversation',
@@ -2035,7 +2051,7 @@ conv_handler = ConversationHandler(
 # Add ConversationHandler to application that will be used for handling updates
 application.add_handler(conv_handler)
 
-# Run the bot until the user presses Ctrl-C
-# Opens a long-running thread, not supported in Hugging Face Spaces, use webhooks instead
 if ENV == 'DEBUG':
+    # Run the bot until the user presses Ctrl-C
+    # Opens a long-running thread, not supported in Hugging Face Spaces, use webhooks instead
     application.run_polling(allowed_updates=Update.ALL_TYPES)

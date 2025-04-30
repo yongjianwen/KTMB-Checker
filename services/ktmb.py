@@ -32,14 +32,13 @@ def login(session, email, password):
         }
         r = session.post(url, data=data)
         soup = BeautifulSoup(r.content, 'html.parser')
-        # logger.info(soup)
 
         token = soup.find('input', attrs={'name': '__RequestVerificationToken'}).get('value')
-
         script_tags = soup.find_all('script', attrs={'type': 'text/javascript'})
 
         res = get_stations_data_from_script_tags(script_tags)
         if res.get('status'):
+            logger.info('>> Login successfully')
             return {
                 'status': True,
                 'token': token
@@ -47,7 +46,7 @@ def login(session, email, password):
     except Exception as e:
         logger.info(e)
 
-    logger.info('>> Log in error')
+    logger.info('>> Login error')
     return {
         'status': False,
         'error': 'Login error'
@@ -64,6 +63,7 @@ def get_stations(session):
 
         res = get_stations_data_from_script_tags(script_tags)
         if res.get('status'):
+            logger.info('>> Get stations successfully')
             return {
                 'status': True,
                 'stations_data': res.get('stations_data')
@@ -71,6 +71,7 @@ def get_stations(session):
     except Exception as e:
         logger.info(e)
 
+    logger.info('>> Get stations error')
     return {
         'status': False,
         'error': 'Get stations error'
@@ -81,8 +82,11 @@ def get_stations_data_from_script_tags(script_tags):
     for script_tag in script_tags:
         script_content = script_tag.string
 
-        grouped_stations_match = re.search(r'var\s+groupedStations\s*=\s*(\[\s*{.*?}\s*]);', script_content,
-                                           re.DOTALL)
+        grouped_stations_match = re.search(
+            r'var\s+groupedStations\s*=\s*(\[\s*{.*?}\s*]);',
+            script_content,
+            re.DOTALL
+        )
         if grouped_stations_match:
             grouped_stations_data = json.loads(grouped_stations_match.group(1))
             # logger.info('Grouped Stations:', grouped_stations_data)
@@ -108,7 +112,6 @@ def get_stations_data_from_script_tags(script_tags):
                 ]
                 # logger.info('Merged Stations:', stations_data)
 
-                logger.info('>> Get stations successfully')
                 return {
                     'status': True,
                     'stations_data': stations_data
@@ -118,19 +121,6 @@ def get_stations_data_from_script_tags(script_tags):
         'status': False,
         'error': 'Get stations error'
     }
-
-
-def get_station_by_id(stations_data, station_id):
-    station = next(
-        (
-            {'Description': station['Description'], 'StationData': station['StationData'], 'Id': station['Id']}
-            for state in stations_data
-            for station in state['Stations']
-            if station['Id'] == station_id
-        )
-        , None)
-
-    return station
 
 
 def get_trips(session, trip_date, from_station, to_station, token):
@@ -150,18 +140,16 @@ def get_trips(session, trip_date, from_station, to_station, token):
         }
         r = session.post(url, headers=headers, data=data)
         soup = BeautifulSoup(r.content, 'html.parser')
-        # with open('response.txt', 'w') as f:
-        #     f.write(str(soup))
 
         oops = soup.select('div.oops')
-        # logger.info('oops:', str(oops))
         if len(oops) > 0:
-            logger.info('>> Get trips error - log in related')
+            logger.info('>> Get trips error - login related')
             return {
                 'status': False,
-                'error': 'Get trips error = log in related',
+                'error': 'Get trips error - login related',
                 'retry': True
             }
+
         search_data = soup.find(id='SearchData').get('value')
         form_validation_code = soup.find(id='FormValidationCode').get('value')
 
@@ -177,8 +165,6 @@ def get_trips(session, trip_date, from_station, to_station, token):
         }
         r = session.post(url, headers=headers, json=data)
         soup = BeautifulSoup(r.content, 'html.parser')
-        # with open('response2.txt', 'w') as f:
-        #     f.write(str(soup))
         soup = BeautifulSoup(json.loads(str(soup))['data'], 'html.parser')
 
         trip_rows = soup.find('tbody').find_all('tr')
@@ -196,7 +182,6 @@ def get_trips(session, trip_date, from_station, to_station, token):
                     'trip_data': tds[6].find('a').get('data-tripdata')
                 }
             )
-        # logger.info(trips_data)
 
         logger.info('>> Get trips successfully')
         return {
@@ -225,14 +210,10 @@ def get_seats(session, search_data, trip_data, token):
             'Pax': 1
         }
         r = session.post(url, headers=headers, json=data)
-        # logger.info(r.content)
         json_data = json.loads(r.content).get('Data')
-        # logger.info(json_data)
 
         layout_data = json_data.get('LayoutData')
-        # logger.info(layout_data)
         coach_data = json_data.get('Coaches')
-        # logger.info(coach_data)
 
         # 0: Blocked
         # 1: Available
@@ -327,9 +308,8 @@ def reserve(session, search_data, trip_data, layout_data, seat_data, token):
         }
         r = session.post(url, headers=headers, json=data)
         booking_data = json.loads(r.content).get('data').get('bookingData')
-        # logger.info(r.content)
 
-        logger.info('>> Reserved successfully')
+        logger.info('>> Reserve successfully')
         return {
             'status': True,
             'booking_data': booking_data
@@ -355,7 +335,6 @@ def cancel_reservation(session, search_data, booking_data, token):
         }
         r = session.post(url, headers=headers, json=data)
         status = json.loads(r.content).get('status')
-        # logger.info(status)
 
         logger.info('>> Cancel successfully')
         return {
