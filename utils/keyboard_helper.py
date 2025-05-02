@@ -17,7 +17,7 @@ from .constants import (
     REFRESHED_TRACKING, REFRESH_TRACKING_DATA,
     CANCEL_TRACKING, CANCEL_TRACKING_DATA,
     REFRESH_RESERVED, REFRESH_RESERVED_DATA,
-    CANCELLED_RESERVATION, CANCEL_RESERVATION_DATA
+    CANCEL_RESERVATION, CANCEL_RESERVATION_DATA
 )
 from .constants import (
     FROM_STATION_NAME, TO_STATION_NAME
@@ -260,7 +260,7 @@ def build_reserved_actions_keyboard(uuid):
             InlineKeyboardButton(REFRESH_RESERVED, callback_data=f'{REFRESH_RESERVED_DATA}/{uuid}')
         ],
         [
-            InlineKeyboardButton(CANCELLED_RESERVATION, callback_data=f'{CANCEL_RESERVATION_DATA}/{uuid}')
+            InlineKeyboardButton(CANCEL_RESERVATION, callback_data=f'{CANCEL_RESERVATION_DATA}/{uuid}')
         ]
     ]
 

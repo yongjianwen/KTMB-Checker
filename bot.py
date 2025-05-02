@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import os
+import random
 import re
 import uuid
 from datetime import datetime, timedelta, time
@@ -39,8 +40,7 @@ from services.ktmb import (
 from utils.bot_helper import (
     strikethrough_last_message, show_error_inline, show_error_reply,
     enable_strikethrough, enable_hide_keyboard_only, disable_strikethrough,
-    is_logged_in,
-    clear_session_data
+    is_logged_in
 )
 from utils.constants import (
     TRACK_NEW_TRAIN,
@@ -74,7 +74,8 @@ from utils.constants import (
     VIEW_TRACK,
     RESERVED,
     CLEAR,
-    Title
+    Title,
+    RANDOM_REPLIES
 )
 from utils.constants import (
     UUID_PATTERN, DATE_PATTERN,
@@ -188,9 +189,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     enable_hide_keyboard_only(context.user_data)
 
-    if 'transaction_temp' not in context.user_data:
-        context.user_data['transaction_temp'] = {}
-
     message = (
         f'Hello {update.message.from_user.first_name} 👋\n'
         '\n'
@@ -211,7 +209,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         )
         await asyncio.sleep(1)  # 1 second delay
         reply_markup = InlineKeyboardMarkup(
-            build_profiles_keyboard(context.user_data.get(PROFILES, {}), 'set_email:')
+            build_profiles_keyboard(context.user_data.get(PROFILES, {}), f'{SET_EMAIL}:')
         )
         context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
             '⬇️ Select a profile below to log in, or enter your KTMB email', reply_markup=reply_markup)
@@ -422,20 +420,6 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
     return True
 
 
-async def print_unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-
-    await context.bot.send_chat_action(
-        chat_id=update.effective_chat.id,
-        action=ChatAction.TYPING
-    )
-
-    disable_strikethrough(context.user_data)
-
-    context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(query.data, reply_markup=None)
-
-
 async def upload_conversation_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await context.bot.send_chat_action(
         chat_id=update.effective_chat.id,
@@ -474,6 +458,73 @@ async def download_conversation_data(update: Update, context: ContextTypes.DEFAU
     return START
 
 
+async def print_unknown_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    await context.bot.send_chat_action(
+        chat_id=update.effective_chat.id,
+        action=ChatAction.TYPING
+    )
+
+    disable_strikethrough(context.user_data)
+
+    context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(query.data, reply_markup=None)
+
+
+async def print_unknown_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_chat_action(
+        chat_id=update.effective_chat.id,
+        action=ChatAction.TYPING
+    )
+
+    disable_strikethrough(context.user_data)
+
+    msg = update.message
+    if not msg:
+        return
+
+    index = random.randint(0, len(RANDOM_REPLIES) - 1)
+    message = RANDOM_REPLIES[index]
+
+    # Text
+    if msg.text:
+        # context.user_data[LAST_MESSAGE] = await msg.reply_text(msg.text)
+        context.user_data[LAST_MESSAGE] = await msg.reply_text(message)
+
+    # Photo
+    elif msg.photo:
+        # context.user_data[LAST_MESSAGE] = await msg.reply_photo(photo=msg.photo[-1].file_id, caption=msg.caption)
+        context.user_data[LAST_MESSAGE] = await msg.reply_text(message)
+
+    # Sticker
+    elif msg.sticker:
+        context.user_data[LAST_MESSAGE] = await msg.reply_sticker(sticker=msg.sticker.file_id)
+
+    # Document
+    elif msg.document:
+        # context.user_data[LAST_MESSAGE] = await msg.reply_document(document=msg.document.file_id, caption=msg.caption)
+        context.user_data[LAST_MESSAGE] = await msg.reply_text(message)
+
+    # Audio
+    elif msg.audio:
+        # context.user_data[LAST_MESSAGE] = await msg.reply_audio(audio=msg.audio.file_id, caption=msg.caption)
+        context.user_data[LAST_MESSAGE] = await msg.reply_text(message)
+
+    # Video
+    elif msg.video:
+        # context.user_data[LAST_MESSAGE] = await msg.reply_video(video=msg.video.file_id, caption=msg.caption)
+        context.user_data[LAST_MESSAGE] = await msg.reply_text(message)
+
+    # Voice
+    elif msg.voice:
+        # context.user_data[LAST_MESSAGE] = await msg.reply_voice(voice=msg.voice.file_id)
+        context.user_data[LAST_MESSAGE] = await msg.reply_text(message)
+
+    else:
+        context.user_data[LAST_MESSAGE] = await msg.reply_text(message)
+
+
 # Create the Application and pass it your bot's token.
 persistence = PicklePersistence(filepath='ktmb_conversation_data')
 application = Application.builder().token(BOT_TOKEN).persistence(persistence).build()
@@ -483,8 +534,8 @@ conv_handler = ConversationHandler(
     states={
         START: [],
         PROFILE: [
-            CallbackQueryHandler(add_email, pattern=f'profile:{ADD_NEW_PROFILE_DATA}'),
-            CallbackQueryHandler(selected_profile, pattern='^profile:')
+            CallbackQueryHandler(add_email, pattern=f'{PROFILE}:{ADD_NEW_PROFILE_DATA}'),
+            CallbackQueryHandler(selected_profile, pattern=f'^{PROFILE}:')
         ],
         ADD_EMAIL: [
             MessageHandler(filters.TEXT & ~filters.COMMAND, add_password)
@@ -493,7 +544,7 @@ conv_handler = ConversationHandler(
             MessageHandler(filters.TEXT & ~filters.COMMAND, added_profile)
         ],
         SELECTED_PROFILE: [
-            CallbackQueryHandler(manage_profiles, pattern='selected_profile:Back'),
+            CallbackQueryHandler(manage_profiles, pattern=f'{SELECTED_PROFILE}:{BACK_DATA}'),
             CallbackQueryHandler(change_password, pattern=f'^{CHANGE_PASSWORD_DATA}/'),
             CallbackQueryHandler(deleted_profile, pattern=f'^{DELETE_PROFILE_DATA}/')
         ],
@@ -501,63 +552,63 @@ conv_handler = ConversationHandler(
             MessageHandler(filters.TEXT & ~filters.COMMAND, added_profile)
         ],
         SHORTCUT: [
-            CallbackQueryHandler(add_from_state, pattern=f'shortcut:{ADD_NEW_SHORTCUT_DATA}'),
-            CallbackQueryHandler(selected_shortcut, pattern='^shortcut:')
+            CallbackQueryHandler(add_from_state, pattern=f'{SHORTCUT}:{ADD_NEW_SHORTCUT_DATA}'),
+            CallbackQueryHandler(selected_shortcut, pattern=f'^{SHORTCUT}:')
         ],
         ADD_FROM_STATE: [
-            CallbackQueryHandler(add_from_station, pattern='^add_from_state:')
+            CallbackQueryHandler(add_from_station, pattern=f'^{ADD_FROM_STATE}:')
         ],
         ADD_FROM_STATION: [
-            CallbackQueryHandler(add_from_state, pattern='add_from_station:Back'),
-            CallbackQueryHandler(add_to_state, pattern='^add_from_station:')
+            CallbackQueryHandler(add_from_state, pattern=f'{ADD_FROM_STATION}:{BACK_DATA}'),
+            CallbackQueryHandler(add_to_state, pattern=f'^{ADD_FROM_STATION}:')
         ],
         ADD_TO_STATE: [
-            CallbackQueryHandler(add_from_station, pattern='add_to_state:Back'),
-            CallbackQueryHandler(add_to_station, pattern='^add_to_state:')
+            CallbackQueryHandler(add_from_station, pattern=f'{ADD_TO_STATE}:{BACK_DATA}'),
+            CallbackQueryHandler(add_to_station, pattern=f'^{ADD_TO_STATE}:')
         ],
         ADD_TO_STATION: [
-            CallbackQueryHandler(add_to_state, pattern='add_to_station:Back'),
-            CallbackQueryHandler(added_shortcut, pattern='^add_to_station:')
+            CallbackQueryHandler(add_to_state, pattern=f'{ADD_TO_STATION}:{BACK_DATA}'),
+            CallbackQueryHandler(added_shortcut, pattern=f'^{ADD_TO_STATION}:')
         ],
         SELECTED_SHORTCUT: [
-            CallbackQueryHandler(manage_shortcuts, pattern='selected_shortcut:Back'),
+            CallbackQueryHandler(manage_shortcuts, pattern=f'{SELECTED_SHORTCUT}:{BACK_DATA}'),
             CallbackQueryHandler(deleted_shortcut, pattern=f'^{DELETE_SHORTCUT_DATA}/')
         ],
         SET_EMAIL: [
             MessageHandler(filters.TEXT & ~filters.COMMAND, set_password),
-            CallbackQueryHandler(login_ktmb, pattern='^set_email:')
+            CallbackQueryHandler(login_ktmb, pattern=f'^{SET_EMAIL}:')
         ],
         SET_PASSWORD: [
             MessageHandler(filters.TEXT & ~filters.COMMAND, login_ktmb)
         ],
         SET_FROM_STATE: [
-            CallbackQueryHandler(set_date, pattern=f'^set_from_state:{UUID_PATTERN}'),
-            CallbackQueryHandler(set_from_station, pattern='^set_from_state:')
+            CallbackQueryHandler(set_date, pattern=f'^{SET_FROM_STATE}:{UUID_PATTERN}'),
+            CallbackQueryHandler(set_from_station, pattern=f'^{SET_FROM_STATE}:')
         ],
         SET_FROM_STATION: [
-            CallbackQueryHandler(set_from_state, pattern='set_from_station:Back'),
-            CallbackQueryHandler(set_to_state, pattern='^set_from_station:')
+            CallbackQueryHandler(set_from_state, pattern=f'{SET_FROM_STATION}:{BACK_DATA}'),
+            CallbackQueryHandler(set_to_state, pattern=f'^{SET_FROM_STATION}:')
         ],
         SET_TO_STATE: [
-            CallbackQueryHandler(set_from_station, pattern='set_to_state:Back'),
-            CallbackQueryHandler(set_to_station, pattern='^set_to_state:')
+            CallbackQueryHandler(set_from_station, pattern=f'{SET_TO_STATE}:{BACK_DATA}'),
+            CallbackQueryHandler(set_to_station, pattern=f'^{SET_TO_STATE}:')
         ],
         SET_TO_STATION: {
-            CallbackQueryHandler(set_to_state, pattern='set_to_station:Back'),
-            CallbackQueryHandler(set_date, pattern='^set_to_station:')
+            CallbackQueryHandler(set_to_state, pattern=f'{SET_TO_STATION}:{BACK_DATA}'),
+            CallbackQueryHandler(set_date, pattern=f'^{SET_TO_STATION}:')
         },
         SET_DATE: [
-            CallbackQueryHandler(set_to_station, pattern='set_date:Back'),
-            CallbackQueryHandler(set_trip, pattern='^set_date:'),
+            CallbackQueryHandler(set_to_station, pattern=f'{SET_DATE}:{BACK_DATA}'),
+            CallbackQueryHandler(set_trip, pattern=f'^{SET_DATE}:'),
             MessageHandler(filters.Regex(f'^{DATE_PATTERN}$'), set_trip)
         ],
         SET_TRIP: [
-            CallbackQueryHandler(set_date, pattern='set_trip:Back'),
-            CallbackQueryHandler(set_track, pattern='^set_trip:')
+            CallbackQueryHandler(set_date, pattern=f'{SET_TRIP}:{BACK_DATA}'),
+            CallbackQueryHandler(set_track, pattern=f'^{SET_TRIP}:')
         ],
         SET_TRACK: [
-            CallbackQueryHandler(set_trip, pattern='set_track:Back'),
-            CallbackQueryHandler(set_reserve, pattern='^set_track:-?\\d+$')
+            CallbackQueryHandler(set_trip, pattern=f'{SET_TRACK}:{BACK_DATA}'),
+            CallbackQueryHandler(set_reserve, pattern=f'^{SET_TRACK}:-?\\d+$')
         ],
         VIEW_TRACK: [
             CallbackQueryHandler(show_reserved, pattern=f'^{RESERVE_DATA}/{UUID_PATTERN}$'),
@@ -569,8 +620,8 @@ conv_handler = ConversationHandler(
             CallbackQueryHandler(set_reserve, pattern=f'^{CANCEL_RESERVATION_DATA}/{UUID_PATTERN}$')
         ],
         CLEAR: [
-            CallbackQueryHandler(rejected_clear, pattern=f'clear:{NO_DATA}$'),
-            CallbackQueryHandler(confirmed_clear, pattern=f'clear:{YES_DATA}$')
+            CallbackQueryHandler(rejected_clear, pattern=f'{CLEAR}:{NO_DATA}$'),
+            CallbackQueryHandler(confirmed_clear, pattern=f'{CLEAR}:{YES_DATA}$')
         ]
     },
     fallbacks=[
@@ -582,10 +633,11 @@ conv_handler = ConversationHandler(
         CommandHandler('shortcut', manage_shortcuts),
         CommandHandler('clear', clear),
         CommandHandler('backup', upload_conversation_data),
-        # CommandHandler('restore', download_conversation_data),
+        CommandHandler('restore', download_conversation_data),
         MessageHandler(filters.Text([TRACK_NEW_TRAIN]), set_from_state),
         MessageHandler(filters.Text([VIEW_TRACKING]), view_tracking),
-        CallbackQueryHandler(print_unknown)
+        CallbackQueryHandler(print_unknown_callback),
+        MessageHandler(filters.ALL, print_unknown_message)
     ],
     name='ktmb_conversation',
     persistent=True

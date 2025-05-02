@@ -1,6 +1,4 @@
 import json
-import json
-import logging
 import re
 import uuid
 from datetime import datetime
@@ -21,8 +19,11 @@ from utils.constants import (
     BACK_DATA
 )
 from utils.constants import (
+    SET_FROM_STATE,
+    SET_TO_STATION,
     SET_DATE,
     SET_TRIP,
+    SET_TRACK,
     Title
 )
 from utils.constants import (
@@ -42,25 +43,19 @@ from utils.message_helper import (
     get_tracking_content
 )
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
-)
-logging.getLogger('httpx').setLevel(logging.WARNING)
-logger = logging.getLogger('bot')
-
 
 async def set_date(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
-    if query.data != 'set_trip:' + BACK_DATA:
-        match = re.search('set_to_station:(.*)', query.data)
+    if query.data != f'{SET_TRIP}:' + BACK_DATA:
+        match = re.search(f'{SET_TO_STATION}:(.*)', query.data)
         if match:
             context.user_data.get(TRANSACTION, {})[TO_STATION_ID] = match.group(1)
             context.user_data.get(TRANSACTION, {})[TO_STATION_NAME] = get_station_by_id(
                 context.user_data.get(STATIONS_DATA, []), context.user_data.get(TRANSACTION, {})[TO_STATION_ID]
             ).get('Description')
         else:
-            match = re.search(f'set_from_state:({UUID_PATTERN})', query.data)
+            match = re.search(f'{SET_FROM_STATE}:({UUID_PATTERN})', query.data)
             if match:
                 shortcut_uuid = match.group(1)
                 t = context.user_data.get(SHORTCUTS, {}).get(uuid.UUID(shortcut_uuid))
@@ -71,13 +66,12 @@ async def set_date(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 context.user_data.get(TRANSACTION, {})[TO_STATION_ID] = t.get(TO_STATION_ID)
                 context.user_data.get(TRANSACTION, {})[TO_STATION_NAME] = t.get(TO_STATION_NAME)
             else:
-                logger.info('test')
                 return context.user_data.get(STATE)
 
     enable_strikethrough(context.user_data)
     context.user_data.get(TRANSACTION, {}).pop(DATE, None)
 
-    reply_markup = InlineKeyboardMarkup(build_dates_keyboard('set_date:', True))
+    reply_markup = InlineKeyboardMarkup(build_dates_keyboard(f'{SET_DATE}:', True))
     message = (
         f'{get_tracking_content(
             context.user_data.get(TRANSACTION, {}),
@@ -85,7 +79,7 @@ async def set_date(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             Title.CREATE_TRACKING_DATE.value
         )}'
         '\n'
-        'What date? (YYYY-MM-DD, e.g. 2025-01-01)'
+        'What date? (YYYY-MM-DD, e.g. 2025-01-31)'
     )
 
     context.user_data[LAST_MESSAGE] = await update.effective_message.edit_text(
@@ -103,8 +97,8 @@ async def set_trip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         # From inline keyboard
         query = update.callback_query
         await query.answer()
-        if query.data != 'set_track:' + BACK_DATA:
-            match = re.search('set_date:(.*)', query.data)
+        if query.data != f'{SET_TRACK}:' + BACK_DATA:
+            match = re.search(f'{SET_DATE}:(.*)', query.data)
             if match:
                 context.user_data.get(TRANSACTION, {})[DATE] = match.group(1)
             else:
@@ -140,20 +134,18 @@ async def set_trip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if not res.get('status'):
         context.user_data[TO_STRIKETHROUGH] = True
         context.user_data[TO_HIDE_KEYBOARD] = False
-        await show_error_inline(context, res, InlineKeyboardMarkup(build_dates_keyboard('set_date:', True)))
+        await show_error_inline(context, res, InlineKeyboardMarkup(build_dates_keyboard(f'{SET_DATE}:', True)))
         context.user_data.get(TRANSACTION, {}).pop(DATE, None)
         context.user_data[STATE] = SET_DATE
         return SET_DATE
 
     context.user_data.get(VOLATILE, {})[SEARCH_DATA] = res.get(SEARCH_DATA)
     context.user_data.get(VOLATILE, {})[TRIPS_DATA] = json.loads(json.dumps(res.get(TRIPS_DATA)))
-    # logger.info(context.user_data.get(VOLATILE, {})[SEARCH_DATA])
-    # logger.info(context.user_data.get(VOLATILE, {})[TRIPS_DATA])
 
     reply_markup = InlineKeyboardMarkup(
         build_times_keyboard(
             context.user_data.get(VOLATILE, {}).get(TRIPS_DATA),
-            'set_trip:',
+            f'{SET_TRIP}:',
             True
         )
     )

@@ -1,5 +1,4 @@
 import json
-import json
 import logging
 import re
 import uuid
@@ -63,12 +62,7 @@ logger = logging.getLogger('bot')
 async def set_track(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
-    # index = int(query.data)
-    # trip = context.user_data.get(TRIPS_DATA)[index]
-    # context.user_data[TRIP_DATA] = trip.get(TRIP_DATA)
-    # context.user_data[DEPARTURE_TIME] = trip.get(DEPARTURE_TIME)
-    # context.user_data[ARRIVAL_TIME] = trip.get(ARRIVAL_TIME)
-    match = re.search('set_trip:(.*)', query.data)
+    match = re.search(f'{SET_TRIP}:(.*)', query.data)
     if match:
         index = int(match.group(1))
         trip = context.user_data.get(VOLATILE, {}).get(TRIPS_DATA)[index]
@@ -99,7 +93,7 @@ async def set_track(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             InlineKeyboardMarkup(
                 build_times_keyboard(
                     context.user_data.get(VOLATILE, {}).get(TRIPS_DATA),
-                    'set_trip:',
+                    f'{SET_TRIP}:',
                     True
                 )
             )
@@ -115,7 +109,7 @@ async def set_track(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data.get(VOLATILE, {})[PARTIAL_CONTENT] = res.get(PARTIAL_CONTENT)
 
     reply_markup = InlineKeyboardMarkup(
-        build_tracking_prices_keyboard(context.user_data.get(VOLATILE, {})[OVERALL_PRICES], 'set_track:', True))
+        build_tracking_prices_keyboard(context.user_data.get(VOLATILE, {})[OVERALL_PRICES], f'{SET_TRACK}:', True))
     message = (
         f'{get_tracking_content(
             context.user_data.get(TRANSACTION, {}),
@@ -224,16 +218,11 @@ async def view_tracking(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
             return START
         # logger.info('trips_res:', trips_res)
 
-        search_data = res.get('search_data')
-        trips_data = json.loads(json.dumps(res.get('trips_data')))
-        trip = next(tr for tr in trips_data if tr.get('departure_time') == departure_time)
+        search_data = res.get(SEARCH_DATA)
+        trips_data = json.loads(json.dumps(res.get(TRIPS_DATA)))
+        trip = next(tr for tr in trips_data if tr.get(DEPARTURE_TIME) == departure_time)
         trip_data = trip.get(TRIP_DATA)
 
-        # res = await get_seats_contents({
-        #     SEARCH_DATA: search_data,
-        #     TRIP_DATA: trip_data,
-        #     TOKEN: context.user_data.get(TOKEN)
-        # }, session)
         res = await get_seats_contents(
             search_data,
             trip_data,

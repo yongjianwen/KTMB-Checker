@@ -1,7 +1,7 @@
 import logging
 
 from .constants import (
-    COOKIE, LAST_MESSAGE, TO_STRIKETHROUGH, TO_HIDE_KEYBOARD
+    COOKIE, LAST_MESSAGE, TO_STRIKETHROUGH, TO_HIDE_KEYBOARD, TRANSACTION, VOLATILE
 )
 from .message_helper import get_tracking_content
 
@@ -38,7 +38,7 @@ async def show_error_inline(context, res, reply_markup=None):
     last_message = context.user_data.get(LAST_MESSAGE)
     if last_message:
         message = (
-            f'{get_tracking_content(context.user_data.get('transaction', {}), context.user_data.get('volatile', {}))}'
+            f'{get_tracking_content(context.user_data.get(TRANSACTION, {}), context.user_data.get(VOLATILE, {}))}'
             '\n'
             f'❌ We encountered an error. Please try again later.\n\n👾 For dev: {res.get('error')}'
         )

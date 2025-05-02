@@ -15,7 +15,8 @@ from utils.bot_helper import (
     strikethrough_last_message, show_error_inline, enable_strikethrough, disable_strikethrough
 )
 from utils.constants import (
-    BACK_DATA
+    BACK_DATA,
+    DELETE_SHORTCUT_DATA
 )
 from utils.constants import (
     COOKIE, LAST_MESSAGE, STATE, SHORTCUTS,
@@ -29,6 +30,7 @@ from utils.constants import (
     SHORTCUT, SELECTED_SHORTCUT,
     SET_FROM_STATE, SET_FROM_STATION,
     SET_TO_STATE, SET_TO_STATION,
+    SET_DATE,
     Title
 )
 from utils.keyboard_helper import (
@@ -231,7 +233,7 @@ async def manage_shortcuts(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     enable_strikethrough(context.user_data)
 
     reply_markup = InlineKeyboardMarkup(
-        build_shortcuts_keyboard(context.user_data.get(SHORTCUTS, {}), 'shortcut:', True)
+        build_shortcuts_keyboard(context.user_data.get(SHORTCUTS, {}), f'{SHORTCUT}:', True)
     )
     message = '⬇️ Select a shortcut below to manage, or add a new shortcut' if context.user_data.get(SHORTCUTS) \
         else '⬇️ Click below button to add a new shortcut'
@@ -254,7 +256,7 @@ async def manage_shortcuts(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 
 async def add_from_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await build_from_state(update, context, ADD_FROM_STATE, 'add_from_state:', False, Title.ADD_SHORTCUT.value)
+    await build_from_state(update, context, ADD_FROM_STATE, f'{ADD_FROM_STATE}:', False, Title.ADD_SHORTCUT.value)
 
     context.user_data[STATE] = ADD_FROM_STATE
     return ADD_FROM_STATE
@@ -264,9 +266,9 @@ async def add_from_station(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     await build_from_station(
         update,
         context,
-        'add_from_station:',
-        'add_from_state:',
-        'add_to_state:',
+        f'{ADD_FROM_STATION}:',
+        f'{ADD_FROM_STATE}:',
+        f'{ADD_TO_STATE}:',
         Title.ADD_SHORTCUT.value
     )
 
@@ -278,9 +280,9 @@ async def add_to_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     await build_to_state(
         update,
         context,
-        'add_to_state:',
-        'add_from_station:',
-        'add_to_station:',
+        f'{ADD_TO_STATE}:',
+        f'{ADD_FROM_STATION}:',
+        f'{ADD_TO_STATION}:',
         Title.ADD_SHORTCUT.value
     )
 
@@ -292,9 +294,9 @@ async def add_to_station(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     await build_to_station(
         update,
         context,
-        'add_to_station:',
-        'add_to_state:',
-        'add_date:',
+        f'{ADD_TO_STATION}:',
+        f'{ADD_TO_STATE}:',
+        '',
         Title.ADD_SHORTCUT.value
     )
 
@@ -305,7 +307,7 @@ async def add_to_station(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 async def added_shortcut(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
-    match = re.search('add_to_station:(.*)', query.data)
+    match = re.search(f'{ADD_TO_STATION}:(.*)', query.data)
     if match:
         context.user_data.get(TRANSACTION, {})[TO_STATION_ID] = match.group(1)
         context.user_data.get(TRANSACTION, {})[TO_STATION_NAME] = get_station_by_id(
@@ -331,7 +333,7 @@ async def added_shortcut(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 build_stations_keyboard(
                     context.user_data.get(STATIONS_DATA, []),
                     context.user_data.get(TRANSACTION, {}).get(TO_STATE_NAME),
-                    'add_to_station:',
+                    f'{ADD_TO_STATION}:',
                     True
                 )
             )
@@ -381,7 +383,7 @@ async def added_shortcut(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def selected_shortcut(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
-    match = re.search('shortcut:(.*)', query.data)
+    match = re.search(f'{SHORTCUT}:(.*)', query.data)
     if match:
         shortcut_uuid = match.group(1)
     else:
@@ -389,7 +391,7 @@ async def selected_shortcut(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     enable_strikethrough(context.user_data)
 
-    reply_markup = InlineKeyboardMarkup(build_shortcut_actions_keyboard(shortcut_uuid, 'selected_shortcut:', True))
+    reply_markup = InlineKeyboardMarkup(build_shortcut_actions_keyboard(shortcut_uuid, f'{SELECTED_SHORTCUT}:', True))
 
     context.user_data[LAST_MESSAGE] = await update.effective_message.edit_text(
         (
@@ -414,7 +416,7 @@ async def deleted_shortcut(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     await query.answer()
 
     query = update.callback_query
-    match = re.search('Delete Shortcut/(.*)', query.data)
+    match = re.search(f'{DELETE_SHORTCUT_DATA}/(.*)', query.data)
     if match:
         shortcut_uuid = match.group(1)
     else:
@@ -448,7 +450,7 @@ async def set_from_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         update,
         context,
         SET_FROM_STATE,
-        'set_from_state:',
+        f'{SET_FROM_STATE}:',
         True,
         Title.CREATE_TRACKING_FROM_STATE.value
     )
@@ -461,9 +463,9 @@ async def set_from_station(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     await build_from_station(
         update,
         context,
-        'set_from_station:',
-        'set_from_state:',
-        'set_to_state:',
+        f'{SET_FROM_STATION}:',
+        f'{SET_FROM_STATE}:',
+        f'{SET_TO_STATE}:',
         Title.CREATE_TRACKING_FROM_STATION.value
     )
 
@@ -475,9 +477,9 @@ async def set_to_state(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     await build_to_state(
         update,
         context,
-        'set_to_state:',
-        'set_from_station:',
-        'set_to_station:',
+        f'{SET_TO_STATE}:',
+        f'{SET_FROM_STATION}:',
+        f'{SET_TO_STATION}:',
         Title.CREATE_TRACKING_TO_STATE.value
     )
 
@@ -489,9 +491,9 @@ async def set_to_station(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     await build_to_station(
         update,
         context,
-        'set_to_station:',
-        'set_to_state:',
-        'set_date:',
+        f'{SET_TO_STATION}:',
+        f'{SET_TO_STATE}:',
+        f'{SET_DATE}:',
         Title.CREATE_TRACKING_TO_STATION.value
     )
 

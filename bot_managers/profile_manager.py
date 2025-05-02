@@ -42,7 +42,7 @@ async def manage_profiles(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     enable_strikethrough(context.user_data)
 
     reply_markup = InlineKeyboardMarkup(
-        build_profiles_keyboard(context.user_data.get(PROFILES, {}), 'profile:', True)
+        build_profiles_keyboard(context.user_data.get(PROFILES, {}), f'{PROFILE}:', True)
     )
     message = '⬇️ Select a profile below to manage, or add a new profile' if context.user_data.get(PROFILES) \
         else '⬇️ Click below button to add a new profile'
@@ -164,7 +164,7 @@ async def added_profile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 async def selected_profile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
-    match = re.search('profile:(.*)', query.data)
+    match = re.search(f'{PROFILE}:(.*)', query.data)
     if match:
         context.user_data[TEMP] = {}
         context.user_data.get(TEMP, {})[EMAIL] = match.group(1)
@@ -174,7 +174,7 @@ async def selected_profile(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     enable_strikethrough(context.user_data)
 
     reply_markup = InlineKeyboardMarkup(
-        build_profile_actions_keyboard(context.user_data.get(TEMP, {}).get(EMAIL), 'selected_profile:', True)
+        build_profile_actions_keyboard(context.user_data.get(TEMP, {}).get(EMAIL), f'{SELECTED_PROFILE}:', True)
     )
 
     context.user_data[LAST_MESSAGE] = await update.effective_message.edit_text(

@@ -18,6 +18,9 @@ from utils.bot_helper import (
     show_error_inline, enable_hide_keyboard_only
 )
 from utils.constants import (
+    RESERVE_DATA, REFRESH_RESERVED_DATA, CANCEL_RESERVATION_DATA
+)
+from utils.constants import (
     SET_TRACK,
     VIEW_TRACK,
     RESERVED,
@@ -65,14 +68,14 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     await query.answer()
     is_refresh = False
     is_cancel = False
-    if re.compile(f'^Refresh/{UUID_PATTERN}$').match(query.data):
+    if re.compile(f'^{REFRESH_RESERVED_DATA}/{UUID_PATTERN}$').match(query.data):
         tracking_uuid = re.search(UUID_PATTERN, query.data).group(0)
         is_refresh = True
-    elif re.compile(f'^Cancel Reservation/{UUID_PATTERN}$').match(query.data):
+    elif re.compile(f'^{CANCEL_RESERVATION_DATA}/{UUID_PATTERN}$').match(query.data):
         tracking_uuid = re.search(UUID_PATTERN, query.data).group(0)
         is_cancel = True
     else:
-        match = re.search('set_track:(.*)', query.data)
+        match = re.search(f'{SET_TRACK}:(.*)', query.data)
         if match:
             context.user_data.get(TRANSACTION, {})[PRICE] = int(match.group(1))
         else:
@@ -128,7 +131,7 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
                 t[RESERVED_SEAT] = None
                 context.user_data[TRACKING_LIST][index] = t
                 break
-        title = Title.CANCELLED.value
+        title = Title.CANCEL_RESERVATION.value
     # elif is_refresh:
     #     title = Title.REFRESH_TRACKING.value
     else:
@@ -151,8 +154,11 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
             res,
             InlineKeyboardMarkup(
                 # generate_tracking_keyboard(context.user_data.get(VOLATILE, {})[OVERALL_PRICES], True)
-                build_tracking_prices_keyboard(context.user_data.get(VOLATILE, {})[OVERALL_PRICES], 'set_track:',
-                                               True)
+                build_tracking_prices_keyboard(
+                    context.user_data.get(VOLATILE, {})[OVERALL_PRICES],
+                    f'{SET_TRACK}:',
+                    True
+                )
             )
         )
         context.user_data[STATE] = SET_TRACK
@@ -242,9 +248,11 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
                 {'error': 'Job scheduling error'},
                 InlineKeyboardMarkup(
                     # generate_tracking_keyboard(context.user_data.get(VOLATILE, {})[OVERALL_PRICES], True)
-                    build_tracking_prices_keyboard(context.user_data.get(VOLATILE, {})[OVERALL_PRICES],
-                                                   'set_track:',
-                                                   True)
+                    build_tracking_prices_keyboard(
+                        context.user_data.get(VOLATILE, {})[OVERALL_PRICES],
+                        'set_track:',
+                        True
+                    )
                 )
             )
             context.user_data[STATE] = SET_TRACK
@@ -284,10 +292,10 @@ async def show_reserved(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     await query.answer()
     is_refresh = False
     # is_cancel = False
-    if re.compile(f'^Refresh Reserved/{UUID_PATTERN}$').match(query.data):
+    if re.compile(f'^{REFRESH_RESERVED_DATA}/{UUID_PATTERN}$').match(query.data):
         tracking_uuid = re.search(UUID_PATTERN, query.data).group(0)
         is_refresh = True
-    elif re.compile(f'^Reserve/{UUID_PATTERN}$').match(query.data):
+    elif re.compile(f'^{RESERVE_DATA}/{UUID_PATTERN}$').match(query.data):
         tracking_uuid = re.search(UUID_PATTERN, query.data).group(0)
 
         # context.user_data[TRACKING_LIST] = [

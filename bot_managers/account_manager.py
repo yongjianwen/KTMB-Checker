@@ -12,7 +12,7 @@ from services.ktmb import (
 )
 from utils.bot_helper import (
     strikethrough_last_message,
-    enable_strikethrough, enable_hide_keyboard_only, disable_strikethrough,
+    enable_hide_keyboard_only, disable_strikethrough,
     is_logged_in
 )
 from utils.constants import (
@@ -55,7 +55,7 @@ async def set_email(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         return START
     else:
         reply_markup = InlineKeyboardMarkup(
-            build_profiles_keyboard(context.user_data.get(PROFILES, {}), 'set_email:')
+            build_profiles_keyboard(context.user_data.get(PROFILES, {}), f'{SET_EMAIL}:')
         )
         context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
             '⬇️ Select a profile below to log in, or enter your KTMB email',
@@ -91,7 +91,7 @@ async def login_ktmb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         password = update.message.text
     else:
         await query.answer()
-        match = re.search('set_email:(.*)', query.data)
+        match = re.search(f'{SET_EMAIL}:(.*)', query.data)
         if match:
             email = match.group(1)
             context.user_data[EMAIL] = email
@@ -173,9 +173,9 @@ async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     )
     await strikethrough_last_message(context)
 
-    enable_strikethrough(context.user_data)
+    enable_hide_keyboard_only(context.user_data)
 
-    reply_markup = InlineKeyboardMarkup(build_clear_actions_keyboard('clear:'))
+    reply_markup = InlineKeyboardMarkup(build_clear_actions_keyboard(f'{CLEAR}:'))
 
     context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
         'Are you sure to clear all user data?',
@@ -200,6 +200,7 @@ async def confirmed_clear(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         chat_id=update.effective_chat.id,
         action=ChatAction.TYPING
     )
+    await strikethrough_last_message(context)
 
     disable_strikethrough(context.user_data)
 
