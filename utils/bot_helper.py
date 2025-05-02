@@ -1,14 +1,9 @@
 import logging
 
 from .constants import (
-    COOKIE,
-    TOKEN,
-    LAST_MESSAGE,
-    TO_STRIKETHROUGH, TO_HIDE_KEYBOARD,
-    SEARCH_DATA, TRIPS_DATA,
-    TRIP_DATA, LAYOUT_DATA, STATIONS_DATA
+    COOKIE, LAST_MESSAGE, TO_STRIKETHROUGH, TO_HIDE_KEYBOARD
 )
-from .ktmb_helper import get_tracking_content
+from .message_helper import get_tracking_content
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -30,7 +25,7 @@ async def strikethrough_last_message(context):
                     parse_mode='HTML'
                 )
             elif context.user_data.get(TO_HIDE_KEYBOARD):
-                await context.bot.edit_message_reply_markup(
+                context.user_data[LAST_MESSAGE] = await context.bot.edit_message_reply_markup(
                     chat_id=last_message.chat_id,
                     message_id=last_message.message_id,
                     reply_markup=None
@@ -81,38 +76,8 @@ def disable_strikethrough(data):
     data[TO_HIDE_KEYBOARD] = False
 
 
-def clear_session_data(context, auto_logout=False):
-    if not auto_logout:
-        context.user_data.pop('email', None)
-        context.user_data.pop('password', None)
-    context.user_data.pop(COOKIE, None)
-    context.user_data.pop(TOKEN, None)
-
-
-# def clear_temp_data(context, auto_logout=False):
-#     if not auto_logout:
-#         context.user_data.pop(FROM_STATE_NAME, None)
-#         context.user_data.pop(FROM_STATION_ID, None)
-#         context.user_data.pop(FROM_STATION_NAME, None)
-#         context.user_data.pop(TO_STATE_NAME, None)
-#         context.user_data.pop(TO_STATION_ID, None)
-#         context.user_data.pop(TO_STATION_NAME, None)
-#         context.user_data.pop(DATE, None)
-#         context.user_data.pop(DEPARTURE_TIME, None)
-#         context.user_data.pop(ARRIVAL_TIME, None)
-#
-#     context.user_data.pop(STATIONS_DATA, None)
-#     context.user_data.pop(PARTIAL_CONTENT, None)
-#     context.user_data.pop(SEARCH_DATA, None)
-#     context.user_data.pop(TRIPS_DATA, None)
-#     context.user_data.pop(TRIP_DATA, None)
-#     context.user_data.pop(LAYOUT_DATA, None)
-#     context.user_data.pop(PRICE, None)
-
-
-def clear_volatile_data(context):
-    context.user_data.pop(STATIONS_DATA, None)
-    context.user_data.pop(SEARCH_DATA, None)
-    context.user_data.pop(TRIPS_DATA, None)
-    context.user_data.pop(TRIP_DATA, None)
-    context.user_data.pop(LAYOUT_DATA, None)
+def is_logged_in(data):
+    logged_in = False
+    if data.get(COOKIE):
+        logged_in = True
+    return logged_in

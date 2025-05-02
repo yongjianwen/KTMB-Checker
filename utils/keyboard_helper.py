@@ -4,18 +4,24 @@ from telegram import InlineKeyboardButton, ReplyKeyboardMarkup
 
 from .constants import (
     TRACK_NEW_TRAIN, VIEW_TRACKING,
+    ADD_NEW_PROFILE, ADD_NEW_PROFILE_DATA,
+    ADD_NEW_SHORTCUT, ADD_NEW_SHORTCUT_DATA,
     BACK, BACK_DATA,
-    CHANGE_PASSWORD, CHANGE_PASSWORD_DATA,
+    YES, YES_DATA,
+    NO, NO_DATA,
+    CHANGE_PASSWORD_LABEL, CHANGE_PASSWORD_DATA,
     DELETE_PROFILE, DELETE_PROFILE_DATA,
     DELETE_SHORTCUT, DELETE_SHORTCUT_DATA,
     START_TRACKING,
     RESERVE, RESERVE_DATA,
-    REFRESH_TRACKING, REFRESH_TRACKING_DATA,
+    REFRESHED_TRACKING, REFRESH_TRACKING_DATA,
     CANCEL_TRACKING, CANCEL_TRACKING_DATA,
     REFRESH_RESERVED, REFRESH_RESERVED_DATA,
-    CANCEL_RESERVATION, CANCEL_RESERVATION_DATA
+    CANCELLED_RESERVATION, CANCEL_RESERVATION_DATA
 )
-from .constants import FROM_STATION_NAME, TO_STATION_NAME
+from .constants import (
+    FROM_STATION_NAME, TO_STATION_NAME
+)
 
 
 def build_bottom_reply_markup():
@@ -25,11 +31,14 @@ def build_bottom_reply_markup():
     return ReplyKeyboardMarkup(bottom_keyboard, one_time_keyboard=False, resize_keyboard=True)
 
 
-def build_profiles_keyboard(profiles, prefix=''):
+def build_profiles_keyboard(profiles, prefix='', create=False):
     keyboard = []
 
     for email in profiles.keys():
         keyboard.append([InlineKeyboardButton(email, callback_data=prefix + email)])
+
+    if create:
+        keyboard.append([InlineKeyboardButton(ADD_NEW_PROFILE, callback_data=prefix + ADD_NEW_PROFILE_DATA)])
 
     return keyboard
 
@@ -37,7 +46,7 @@ def build_profiles_keyboard(profiles, prefix=''):
 def build_profile_actions_keyboard(email, prefix='', back=False):
     keyboard = [
         [
-            InlineKeyboardButton(CHANGE_PASSWORD, callback_data=f'{CHANGE_PASSWORD_DATA}/{email}')
+            InlineKeyboardButton(CHANGE_PASSWORD_LABEL, callback_data=f'{CHANGE_PASSWORD_DATA}/{email}')
         ],
         [
             InlineKeyboardButton(DELETE_PROFILE, callback_data=f'{DELETE_PROFILE_DATA}/{email}')
@@ -50,7 +59,7 @@ def build_profile_actions_keyboard(email, prefix='', back=False):
     return keyboard
 
 
-def build_shortcuts_keyboard(shortcuts, prefix=''):
+def build_shortcuts_keyboard(shortcuts, prefix='', create=False):
     keyboard = []
 
     for key, value in shortcuts.items():
@@ -60,6 +69,9 @@ def build_shortcuts_keyboard(shortcuts, prefix=''):
                 callback_data=prefix + str(key)
             )
         ])
+
+    if create:
+        keyboard.append([InlineKeyboardButton(ADD_NEW_SHORTCUT, callback_data=prefix + ADD_NEW_SHORTCUT_DATA)])
 
     return keyboard
 
@@ -193,7 +205,7 @@ def next_friday(from_date):
     return from_date + timedelta(days=days_ahead)
 
 
-def build_timings_keyboard(trips_data, prefix='', back=False):
+def build_times_keyboard(trips_data, prefix='', back=False):
     keyboard = []
 
     for index, trip in enumerate(trips_data):
@@ -232,7 +244,7 @@ def build_tracked_actions_keyboard(uuid):
     keyboard = [
         [
             InlineKeyboardButton(RESERVE, callback_data=f'{RESERVE_DATA}/{uuid}'),
-            InlineKeyboardButton(REFRESH_TRACKING, callback_data=f'{REFRESH_TRACKING_DATA}/{uuid}')
+            InlineKeyboardButton(REFRESHED_TRACKING, callback_data=f'{REFRESH_TRACKING_DATA}/{uuid}')
         ],
         [
             InlineKeyboardButton(CANCEL_TRACKING, callback_data=f'{CANCEL_TRACKING_DATA}/{uuid}')
@@ -248,7 +260,18 @@ def build_reserved_actions_keyboard(uuid):
             InlineKeyboardButton(REFRESH_RESERVED, callback_data=f'{REFRESH_RESERVED_DATA}/{uuid}')
         ],
         [
-            InlineKeyboardButton(CANCEL_RESERVATION, callback_data=f'{CANCEL_RESERVATION_DATA}/{uuid}')
+            InlineKeyboardButton(CANCELLED_RESERVATION, callback_data=f'{CANCEL_RESERVATION_DATA}/{uuid}')
+        ]
+    ]
+
+    return keyboard
+
+
+def build_clear_actions_keyboard(prefix=''):
+    keyboard = [
+        [
+            InlineKeyboardButton(NO, callback_data=prefix + NO_DATA),
+            InlineKeyboardButton(YES, callback_data=prefix + YES_DATA)
         ]
     ]
 

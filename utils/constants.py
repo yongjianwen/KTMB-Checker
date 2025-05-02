@@ -7,6 +7,8 @@ DATE_PATTERN = '\\d{4}-\\d{2}-\\d{2}'
 # User data keys
 COOKIE = 'cookie'
 TOKEN = 'token'
+EMAIL = 'email'
+PASSWORD = 'password'
 LAST_MESSAGE = 'last_message'
 STATE = 'state'
 TO_STRIKETHROUGH = 'to_strikethrough'
@@ -15,15 +17,15 @@ TO_HIDE_KEYBOARD = 'to_hide_keyboard'
 PROFILES = 'profiles'
 SHORTCUTS = 'shortcuts'
 
+TEMP = 'temp'
 TRANSACTION = 'transaction'
 VOLATILE = 'volatile'
 STATIONS_DATA = 'stations_data'
 TRACKING_LIST = 'tracking_list'
 
 # Transaction keys
-FROM_STATE_NAME, TO_STATE_NAME = 'from_state_name', 'to_state_name'
-FROM_STATION_ID, TO_STATION_ID = 'from_station_id', 'to_station_id'
-FROM_STATION_NAME, TO_STATION_NAME = 'from_station_name', 'to_station_name'
+FROM_STATE_NAME, FROM_STATION_ID, FROM_STATION_NAME = 'from_state_name', 'from_station_id', 'from_station_name'
+TO_STATE_NAME, TO_STATION_ID, TO_STATION_NAME = 'to_state_name', 'to_station_id', 'to_station_name'
 DATE = 'date'
 DEPARTURE_TIME, ARRIVAL_TIME = 'departure_time', 'arrival_time'
 PRICE = 'price'
@@ -48,50 +50,84 @@ TRACK_NEW_TRAIN = 'Track New Train 🚈'
 VIEW_TRACKING = '👀 View Tracking'
 
 # Inline keyboard
+ADD_NEW_PROFILE = '+ New Profile'
+ADD_NEW_PROFILE_DATA = 'New Profile'
+ADD_NEW_SHORTCUT = '+ New Shortcut'
+ADD_NEW_SHORTCUT_DATA = 'New Shortcut'
 BACK = '↩️ Back'
 BACK_DATA = 'Back'
+YES = 'Yes'
+YES_DATA = 'Yes'
+NO = 'No'
+NO_DATA = 'No'
 
-CHANGE_PASSWORD = 'Change Password'
+CHANGE_PASSWORD_LABEL = '🔑 Change Password'
 CHANGE_PASSWORD_DATA = 'Change Password'
-DELETE_PROFILE = 'Delete'
+DELETE_PROFILE = '🗑️ Delete'
 DELETE_PROFILE_DATA = 'Delete Profile'
 
-DELETE_SHORTCUT = 'Delete'
+DELETE_SHORTCUT = '🗑️ Delete'
 DELETE_SHORTCUT_DATA = 'Delete Shortcut'
 
 START_TRACKING = '✅ Start Tracking!'
 RESERVE = '🎟 Reserve'
 RESERVE_DATA = 'Reserve'
-REFRESH_TRACKING = '🔄 Refresh'
+REFRESHED_TRACKING = '🔄 Refresh'
 REFRESH_TRACKING_DATA = 'Refresh Tracking'
 CANCEL_TRACKING = 'Cancel Tracking'
 CANCEL_TRACKING_DATA = 'Cancel Tracking'
 REFRESH_RESERVED = '🔄 Refresh'
 REFRESH_RESERVED_DATA = 'Refresh Reserved'
-CANCEL_RESERVATION = 'Cancel Reservation'
+CANCELLED_RESERVATION = 'Cancel Reservation'
 CANCEL_RESERVATION_DATA = 'Cancel Reservation'
 
-# Prefixes
-# MANAGE_PROFILE = 'manage_profile'
-# ADD_FROM_STATE =
+# Stages
+(
+    START,
+    ADD_EMAIL, ADD_PASSWORD,
+    PROFILE, SELECTED_PROFILE, CHANGE_PASSWORD,
+    ADD_FROM_STATE, ADD_FROM_STATION,
+    ADD_TO_STATE, ADD_TO_STATION,
+    SHORTCUT, SELECTED_SHORTCUT,
+    SET_EMAIL, SET_PASSWORD,
+    SET_FROM_STATE, SET_FROM_STATION,
+    SET_TO_STATE, SET_TO_STATION,
+    SET_DATE,
+    SET_TRIP,
+    SET_TRACK,
+    VIEW_TRACK,
+    RESERVED,
+    CLEAR
+) = range(24)
 
-# Commands
-# START = 'start'
-# ADD = 'add'
-# MANAGE = 'manage'
-# LOGIN = 'login'
-# LOGOUT = 'logout'
-# ADD_SHORTCUT = 'add_shortcut'
-# MANAGE_SHORTCUT = 'manage_shortcut'
-# CLEAR = 'clear'
-# BACKUP = 'backup'
 
-
-# Title states
 class Title(Enum):
-    CREATE = '📍 Creating new tracking...'
-    NEW_TRACKING = '✅ New tracking added!'
-    REFRESH_TRACKING = '✅ Tracking refreshed!'
-    NEW_RESERVATION = '🎟 New reservation made!'
-    CANCEL_RESERVATION = '✅ Reservation cancelled!'
-    VIEW_TRACKING = '✴️ Tracking '
+    CREATE_TRACKING = 'Creating new tracking...'
+    # CREATE_TRACKING_FROM_STATE = '⬛⬛⬛⬛⬛⬛\n' + str(CREATE_TRACKING)
+    # CREATE_TRACKING_FROM_STATION = '🟩⬛⬛⬛⬛⬛\n' + str(CREATE_TRACKING)
+    # CREATE_TRACKING_TO_STATE = '🟩🟩⬛⬛⬛⬛\n' + str(CREATE_TRACKING)
+    # CREATE_TRACKING_TO_STATION = '🟩🟩🟩⬛⬛⬛\n' + str(CREATE_TRACKING)
+    # CREATE_TRACKING_DATE = '🟩🟩🟩🟩⬛⬛\n' + str(CREATE_TRACKING)
+    # CREATE_TRACKING_TIME = '🟩🟩🟩🟩🟩⬛\n' + str(CREATE_TRACKING)
+    # CREATE_TRACKING_PRICE = '🟩🟩🟩🟩🟩🟩\n' + str(CREATE_TRACKING)
+    CREATE_TRACKING_FROM_STATE = '🌑 ' + str(CREATE_TRACKING)
+    CREATE_TRACKING_FROM_STATION = '🌑 ' + str(CREATE_TRACKING)
+    CREATE_TRACKING_TO_STATE = '🌒 ' + str(CREATE_TRACKING)
+    CREATE_TRACKING_TO_STATION = '🌒 ' + str(CREATE_TRACKING)
+    CREATE_TRACKING_DATE = '🌓 ' + str(CREATE_TRACKING)
+    CREATE_TRACKING_TIME = '🌔 ' + str(CREATE_TRACKING)
+    CREATE_TRACKING_PRICE = '🌕 ' + str(CREATE_TRACKING)
+    ADDED_TRACKING = '✅ New tracking added!'
+    REFRESHED_TRACKING = '🔄 Tracking refreshed!'
+    RESERVED = '🎟 New reservation made!'
+    CANCELLED_RESERVATION = '❎ Reservation cancelled!'
+    TRACKING_NUM = '🔍 Tracking '
+    ADD_PROFILE = '👤 Adding new profile...'
+    ADDED_PROFILE = '✅ New profile added!'
+    MANAGE_PROFILE = '👤 Managing profile...'
+    UPDATED_PROFILE = '✅ Profile updated!'
+    DELETED_PROFILE = '❎ Profile deleted!'
+    ADD_SHORTCUT = '🔀 Adding new shortcut...'
+    ADDED_SHORTCUT = '✅ New shortcut added!'
+    MANAGE_SHORTCUT = '👤 Managing shortcut...'
+    DELETED_SHORTCUT = '❎ Shortcut deleted!'
