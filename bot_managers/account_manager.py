@@ -120,7 +120,7 @@ async def login_ktmb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         message = f'Logged in as {email} successfully'
         if password != context.user_data.get(PROFILES, {}).get(email):
             context.user_data.get(PROFILES, {})[email] = password
-            message = message + '\n\n✅ Password for the same profile has also been updated'
+            message = message + '\n\n✅ Profile password updated'
         context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
             message,
             reply_markup=build_bottom_reply_markup()
