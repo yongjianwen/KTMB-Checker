@@ -4,6 +4,7 @@ import os
 import random
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 from dotenv import load_dotenv
 from flask import Flask, request
 from telegram import InlineKeyboardMarkup, Update
@@ -56,6 +57,7 @@ from utils.constants import (
     VIEW_TRACKS,
     RESERVED,
     CLEAR,
+    TRACKING_JOB_ID, TRIGGER_INTERVAL_IN_SECONDS, LOW_SEAT_COUNT,
     RANDOM_REPLIES
 )
 from utils.constants import (
@@ -84,7 +86,7 @@ from utils.keyboard_helper import (
     build_profiles_keyboard
 )
 from jobs.tracking_job_manager import (
-    scheduler
+    scheduler, set_trigger_interval_in_seconds
 )
 
 # drty
@@ -105,9 +107,6 @@ app = Flask(__name__)
 
 # Initialize only once
 initialized = False
-
-
-# scheduler = AsyncIOScheduler()
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -227,6 +226,62 @@ async def download_conversation_data(update: Update, context: ContextTypes.DEFAU
     return START
 
 
+async def update_tracking_job_param(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await context.bot.send_chat_action(
+        chat_id=update.effective_chat.id,
+        action=ChatAction.TYPING
+    )
+    await strikethrough_last_message(context)
+
+    disable_strikethrough(context.user_data)
+
+    if not context.args or len(context.args) != 2:
+        context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text("Usage: /set <option> <integer>")
+        context.user_data[STATE] = START
+        return START
+
+    message = 'Usage: /set <option> <integer>'
+
+    try:
+        option = context.args[0]
+        if option == 'interval' or option == 'low':
+            num = int(context.args[1])
+        else:
+            context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
+                "Usage: /set <option> <integer>"
+            )
+            context.user_data[STATE] = START
+            return START
+
+        if option == 'interval':
+            message = f'Tracking job interval set from {context.bot_data.get(TRIGGER_INTERVAL_IN_SECONDS)} to {num} s'
+
+            context.bot_data[TRIGGER_INTERVAL_IN_SECONDS] = num
+
+            job_id = f'{TRACKING_JOB_ID}_{update.effective_message.chat_id}'
+            job = scheduler.get_job(job_id)
+            if job:
+                scheduler.modify_job(job_id, trigger=IntervalTrigger(seconds=num))
+        elif option == 'low':
+            message = f'Low seat count set from {context.bot_data.get(LOW_SEAT_COUNT)} to {num}'
+
+            context.bot_data[LOW_SEAT_COUNT] = num
+    except ValueError:
+        context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text("Usage: /set <option> <integer>")
+        context.user_data[STATE] = START
+        return START
+
+    # set_trigger_interval_in_seconds(new_interval_in_seconds)
+
+    context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
+        message,
+        reply_markup=None
+    )
+
+    context.user_data[STATE] = START
+    return START
+
+
 async def print_unknown_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -246,6 +301,7 @@ async def print_unknown_message(update: Update, context: ContextTypes.DEFAULT_TY
         chat_id=update.effective_chat.id,
         action=ChatAction.TYPING
     )
+    await strikethrough_last_message(context)
 
     disable_strikethrough(context.user_data)
 
@@ -407,6 +463,7 @@ conv_handler = ConversationHandler(
         CommandHandler('clear', clear),
         CommandHandler('backup', upload_conversation_data),
         CommandHandler('restore', download_conversation_data),
+        CommandHandler('set', update_tracking_job_param),
         MessageHandler(filters.Text([TRACK_NEW_TRAIN]), set_from_state),
         MessageHandler(filters.Text([VIEW_TRACKING]), view_trackings),
         # CallbackQueryHandler(print_unknown_callback),

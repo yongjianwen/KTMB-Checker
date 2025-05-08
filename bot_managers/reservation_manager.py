@@ -1,8 +1,10 @@
 import logging
+import os
 import re
 import uuid
 
 import requests
+from dotenv import load_dotenv
 from telegram import InlineKeyboardMarkup, Update
 from telegram.ext import (
     ContextTypes
@@ -18,9 +20,9 @@ from services.ktmb import (
 from utils.bot_helper import (
     show_error_inline, enable_hide_keyboard_only
 )
-from utils.constants import (
-    LOW_SEAT_COUNT
-)
+# from utils.constants import (
+#     LOW_SEAT_COUNT
+# )
 from utils.constants import (
     RESERVE_DATA, REFRESH_TRACKING_DATA, REFRESH_RESERVED_DATA, CANCEL_RESERVATION_DATA
 )
@@ -28,6 +30,7 @@ from utils.constants import (
     SET_TRACK,
     VIEW_TRACK,
     RESERVED,
+    LOW_SEAT_COUNT, DEFAULT_LOW_SEAT_COUNT,
     Title
 )
 from utils.constants import (
@@ -101,7 +104,7 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
                 ARRIVAL_TIME: context.user_data.get(TRANSACTION, {}).get(ARRIVAL_TIME),
                 PRICE: context.user_data.get(TRANSACTION, {}).get(PRICE),
                 RESERVED_SEAT: None,
-                SEATS_LEFT_BY_PRICES: [],
+                SEATS_LEFT_BY_PRICES: {},
                 LAST_REMINDED: malaysia_now_datetime(),
                 INTERVALS_INDEX: 0,
                 IS_DANGEROUS: False
@@ -186,6 +189,9 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     elif res.get('status'):
         context.user_data[COOKIE] = session.cookies
 
+    # load_dotenv(override=True)
+    # low_seat_count = int(os.getenv('LOW_SEAT_COUNT'))
+
     context.user_data.get(VOLATILE, {})[PARTIAL_CONTENT] = res.get(PARTIAL_CONTENT)
     for index, t in enumerate(context.user_data.get(TRACKING_LIST, [])):
         if t.get(TRACKING_UUID) == tracking_uuid:
@@ -197,7 +203,10 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
             t = {
                 **t,
                 SEATS_LEFT_BY_PRICES: res.get(SEATS_LEFT_BY_PRICES),
-                IS_DANGEROUS: seats_left_by_tracking_price <= LOW_SEAT_COUNT
+                IS_DANGEROUS: seats_left_by_tracking_price <= context.bot_data.get(
+                    LOW_SEAT_COUNT,
+                    DEFAULT_LOW_SEAT_COUNT
+                )
             }
             context.user_data[TRACKING_LIST][index] = t
             break

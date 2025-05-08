@@ -1,11 +1,12 @@
 import asyncio
 import json
 import logging
+import os
 from datetime import datetime, timedelta, time
 
 import requests
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.schedulers.background import BackgroundScheduler
+from dotenv import load_dotenv
 from telegram.constants import ChatAction
 
 from services.ktmb import (
@@ -31,11 +32,12 @@ from utils.constants import (
     SEATS_LEFT_BY_PRICES,
     LAST_REMINDED,
     INTERVALS_INDEX,
-    INTERVALS,
     IS_DANGEROUS
 )
 from utils.constants import (
-    TRACKING_JOB_ID, TRIGGER_INTERVAL_IN_SECONDS, LOW_SEAT_COUNT
+    TRACKING_JOB_ID,
+    TRIGGER_INTERVAL_IN_SECONDS, LOW_SEAT_COUNT,
+    DEFAULT_TRIGGER_INTERVAL_IN_SECONDS, DEFAULT_LOW_SEAT_COUNT
 )
 from utils.ktmb_helper import (
     get_station_by_id, get_seats_contents
@@ -57,13 +59,22 @@ logger = logging.getLogger(__name__)
 scheduler = BackgroundScheduler()
 
 
+# trigger_interval_in_seconds = 30
+# low_seat_count = 20
+
+
 def start_tracking_job(context, chat_id):
+    # load_dotenv()
+    # trigger_interval_in_seconds = int(os.getenv('TRIGGER_INTERVAL_IN_SECONDS'))
+
     scheduler.add_job(
         sync_alarm_wrapper,
         trigger='interval',
         id=f'{TRACKING_JOB_ID}_{chat_id}',
-        seconds=TRIGGER_INTERVAL_IN_SECONDS,
-        start_date=get_next_time_by_interval(TRIGGER_INTERVAL_IN_SECONDS),
+        seconds=context.bot_data.get(TRIGGER_INTERVAL_IN_SECONDS, DEFAULT_TRIGGER_INTERVAL_IN_SECONDS),
+        start_date=get_next_time_by_interval(
+            context.bot_data.get(TRIGGER_INTERVAL_IN_SECONDS, DEFAULT_TRIGGER_INTERVAL_IN_SECONDS)
+        ),
         args=[],
         kwargs={
             'context': context,
@@ -84,6 +95,31 @@ def sync_alarm_wrapper(*args, **kwargs):
 
 
 async def alarm(context, chat_id) -> None:
+    # load_dotenv(override=True)
+    # trigger_interval_in_seconds = int(os.getenv('TRIGGER_INTERVAL_IN_SECONDS'))
+    # low_seat_count = int(os.getenv('LOW_SEAT_COUNT'))
+    trigger_interval_in_seconds = context.bot_data.get(TRIGGER_INTERVAL_IN_SECONDS, 30)
+    low_seat_count = context.bot_data.get(LOW_SEAT_COUNT, 20)
+    intervals = [
+        trigger_interval_in_seconds,  # 30 seconds
+        trigger_interval_in_seconds,
+        trigger_interval_in_seconds * 2,  # 1 minute
+        trigger_interval_in_seconds * 2,
+        trigger_interval_in_seconds * 4,  # 2 minutes
+        trigger_interval_in_seconds * 4,
+        trigger_interval_in_seconds * 8,  # 4 minutes
+        trigger_interval_in_seconds * 8,
+        trigger_interval_in_seconds * 16,  # 8 minutes
+        trigger_interval_in_seconds * 16,
+        trigger_interval_in_seconds * 32,  # 16 minutes
+        trigger_interval_in_seconds * 32,
+        trigger_interval_in_seconds * 64,  # 32 minutes
+        trigger_interval_in_seconds * 64
+    ]
+
+    logger.info(f'trigger_interval_in_seconds: {trigger_interval_in_seconds}')
+    logger.info(f'low_seat_count: {low_seat_count}')
+
     if len(context.user_data.get(TRACKING_LIST, [])) == 0:
         logger.info('>> Job skipped - no tracking found')
         return
@@ -130,7 +166,7 @@ async def alarm(context, chat_id) -> None:
         is_dangerous = t.get(IS_DANGEROUS, False)
 
         year, month, day = date.split('-')
-        interval = INTERVALS[intervals_index]
+        interval = intervals[intervals_index]
         next_remind_time = (last_reminded + timedelta(seconds=interval)).replace(microsecond=0)
 
         logger.info(
@@ -206,7 +242,7 @@ async def alarm(context, chat_id) -> None:
             seats_left_by_tracking_price = sum(new_seats_left_by_prices.values())
         else:
             seats_left_by_tracking_price = new_seats_left_by_prices.get(str(price))
-        t[IS_DANGEROUS] = (seats_left_by_tracking_price or 0) <= LOW_SEAT_COUNT
+        t[IS_DANGEROUS] = (seats_left_by_tracking_price or 0) <= low_seat_count
 
         logger.info(f'>> Is dangerous: {t.get(IS_DANGEROUS)}')
 
@@ -252,7 +288,7 @@ async def alarm(context, chat_id) -> None:
                 #         break
                 if t.get(IS_DANGEROUS):
                     to_remind = True
-                    reason = f'‼️ Less than {LOW_SEAT_COUNT} tickets!'
+                    reason = f'‼️ Less than {low_seat_count} tickets!'
 
         logger.info(f'>> To remind: {to_remind}')
 
@@ -260,14 +296,14 @@ async def alarm(context, chat_id) -> None:
             t[INTERVALS_INDEX] = 0
 
         intervals_index = t.get(INTERVALS_INDEX, 0)
-        interval = INTERVALS[intervals_index]
+        interval = intervals[intervals_index]
 
         logger.info(f'>> Update: {new_seats_left_by_prices}')
         t[SEATS_LEFT_BY_PRICES] = {**new_seats_left_by_prices}
 
         if to_remind and last_reminded + timedelta(seconds=interval) < malaysia_now_datetime():
             t[LAST_REMINDED] = now_datetime.replace(microsecond=0)
-            t[INTERVALS_INDEX] = min(intervals_index + 1, len(INTERVALS) - 1)
+            t[INTERVALS_INDEX] = min(intervals_index + 1, len(intervals) - 1)
 
             # async with context.bot:
             await context.bot.send_chat_action(
@@ -325,3 +361,9 @@ def check_active_jobs():
         if job.next_run_time is not None:
             return True
     return False
+
+
+def set_trigger_interval_in_seconds(interval_in_seconds):
+    pass
+    # global trigger_interval_in_seconds
+    # trigger_interval_in_seconds = interval_in_seconds
