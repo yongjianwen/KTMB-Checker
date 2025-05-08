@@ -52,7 +52,7 @@ async def set_date(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         if match:
             context.user_data.get(TRANSACTION, {})[TO_STATION_ID] = match.group(1)
             context.user_data.get(TRANSACTION, {})[TO_STATION_NAME] = get_station_by_id(
-                context.user_data.get(STATIONS_DATA, []), context.user_data.get(TRANSACTION, {})[TO_STATION_ID]
+                context.user_data.get(STATIONS_DATA, []), context.user_data.get(TRANSACTION, {}).get(TO_STATION_ID)
             ).get('Description')
         else:
             match = re.search(f'{SET_FROM_STATE}:({UUID_PATTERN})', query.data)
