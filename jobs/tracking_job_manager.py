@@ -266,57 +266,58 @@ async def alarm(context, chat_id) -> None:
         t[SEATS_LEFT_BY_PRICES] = {**new_seats_left_by_prices}
 
         if to_remind and last_reminded + timedelta(seconds=interval) < malaysia_now_datetime():
-            t[LAST_REMINDED] = now_datetime
+            t[LAST_REMINDED] = now_datetime.replace(microsecond=0)
             t[INTERVALS_INDEX] = min(intervals_index + 1, len(INTERVALS) - 1)
 
-            async with context.bot:
-                await context.bot.send_chat_action(
-                    chat_id=chat_id,
-                    action=ChatAction.TYPING
-                )
-                await strikethrough_last_message(context)
+            # async with context.bot:
+            await context.bot.send_chat_action(
+                chat_id=chat_id,
+                action=ChatAction.TYPING
+            )
+            await strikethrough_last_message(context)
 
-                if reserved_seat is None:
-                    price_message = 'any price' if price == -1 else f'RM {price}'
-                    await context.bot.send_message(
-                        chat_id,
-                        text=(
-                            f'{get_tracking_content(
-                                t,
-                                {PARTIAL_CONTENT: partial_content},
-                                reason
-                            )}'
-                            '\n'
-                            f'{get_seats_left_by_prices_content(prev_seats_left_by_prices, new_seats_left_by_prices)}'
-                            '\n'
-                            f'<i>Refreshed at: {malaysia_now_datetime().strftime('%H:%M:%S')}</i>\n'
-                            '\n'
-                            f'<b>Reserve a random seat of {price_message}?</b>'
-                        ),
-                        reply_markup=None,
-                        parse_mode='HTML'
-                    )
-                else:
-                    await context.bot.send_message(
-                        chat_id,
-                        text=(
-                            f'{get_tracking_content(
-                                {**t, PARTIAL_CONTENT: partial_content},
-                                {},
-                                'Alarm'
-                            )}'
-                            '\n'
-                            f'{get_seats_left_by_prices_content(prev_seats_left_by_prices, new_seats_left_by_prices)}'
-                            '\n'
-                            'Seat reserved successfully!\n'
-                            '\n'
-                            f'Coach: <b>{reserved_seat.get('CoachLabel')}</b>\n'
-                            f'Seat: <b>{reserved_seat.get('SeatNo')}</b>\n'
-                            f'Price: <b>RM {reserved_seat.get('Price')}</b>'
-                        ),
-                        reply_markup=None,
-                        parse_mode='HTML'
-                    )
+            if reserved_seat is None:
+                price_message = 'any price' if price == -1 else f'RM {price}'
+                await context.bot.send_message(
+                    chat_id,
+                    text=(
+                        f'{get_tracking_content(
+                            t,
+                            {PARTIAL_CONTENT: partial_content},
+                            reason
+                        )}'
+                        '\n'
+                        f'{get_seats_left_by_prices_content(prev_seats_left_by_prices, new_seats_left_by_prices)}'
+                        '\n'
+                        f'<i>Refreshed at: {malaysia_now_datetime().strftime('%H:%M:%S')}</i>\n'
+                        '\n'
+                        f'Price: <b>{price_message}</b>'
+                        # f'<b>Reserve a random seat of {price_message}?</b>'
+                    ),
+                    reply_markup=None,
+                    parse_mode='HTML'
+                )
+            else:
+                await context.bot.send_message(
+                    chat_id,
+                    text=(
+                        f'{get_tracking_content(
+                            {**t, PARTIAL_CONTENT: partial_content},
+                            {},
+                            'Alarm'
+                        )}'
+                        '\n'
+                        f'{get_seats_left_by_prices_content(prev_seats_left_by_prices, new_seats_left_by_prices)}'
+                        '\n'
+                        'Seat reserved successfully!\n'
+                        '\n'
+                        f'Coach: <b>{reserved_seat.get('CoachLabel')}</b>\n'
+                        f'Seat: <b>{reserved_seat.get('SeatNo')}</b>\n'
+                        f'Price: <b>RM {reserved_seat.get('Price')}</b>'
+                    ),
+                    reply_markup=None,
+                    parse_mode='HTML'
+                )
 
 
 def check_active_jobs():
