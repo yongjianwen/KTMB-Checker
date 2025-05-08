@@ -38,7 +38,7 @@ def login(session, email, password):
 
         res = get_stations_data_from_script_tags(script_tags)
         if res.get('status'):
-            logger.info('>> Login successfully')
+            # logger.info('>> Login successfully')
             return {
                 'status': True,
                 'token': token
@@ -63,7 +63,7 @@ def get_stations(session):
 
         res = get_stations_data_from_script_tags(script_tags)
         if res.get('status'):
-            logger.info('>> Get stations successfully')
+            # logger.info('>> Get stations successfully')
             return {
                 'status': True,
                 'stations_data': res.get('stations_data')
@@ -147,7 +147,7 @@ def get_trips(session, trip_date, from_station, to_station, token):
             return {
                 'status': False,
                 'error': 'Get trips error - login related',
-                'retry': True
+                # 'retry': True
             }
 
         search_data = soup.find(id='SearchData').get('value')
@@ -183,7 +183,7 @@ def get_trips(session, trip_date, from_station, to_station, token):
                 }
             )
 
-        logger.info('>> Get trips successfully')
+        # logger.info('>> Get trips successfully')
         return {
             'status': True,
             'search_data': search_data,
@@ -245,7 +245,7 @@ def get_seats(session, search_data, trip_data, token):
                 }
             )
 
-        logger.info('>> Get seats successfully')
+        # logger.info('>> Get seats successfully')
         return {
             'status': True,
             'layout_data': layout_data,
@@ -309,7 +309,7 @@ def reserve(session, search_data, trip_data, layout_data, seat_data, token):
         r = session.post(url, headers=headers, json=data)
         booking_data = json.loads(r.content).get('data').get('bookingData')
 
-        logger.info('>> Reserve successfully')
+        # logger.info('>> Reserve successfully')
         return {
             'status': True,
             'booking_data': booking_data
@@ -336,7 +336,7 @@ def cancel_reservation(session, search_data, booking_data, token):
         r = session.post(url, headers=headers, json=data)
         status = json.loads(r.content).get('status')
 
-        logger.info('>> Cancel successfully')
+        # logger.info('>> Cancel successfully')
         return {
             'status': status
         }
@@ -355,7 +355,7 @@ def logout(session):
         url = 'https://online.ktmb.com.my/Account/Logout'
         session.get(url)
 
-        logger.info('>> Logout executed')
+        # logger.info('>> Logout executed')
         return {
             'status': True
         }

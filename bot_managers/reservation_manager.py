@@ -1,15 +1,16 @@
 import logging
 import re
 import uuid
-from datetime import datetime
 
 import requests
-from apscheduler.schedulers.background import BackgroundScheduler
 from telegram import InlineKeyboardMarkup, Update
 from telegram.ext import (
     ContextTypes
 )
 
+from jobs.tracking_job_manager import (
+    start_tracking_job, check_active_jobs
+)
 from services.ktmb import (
     reserve_by_price,
     cancel_reservation
@@ -18,7 +19,10 @@ from utils.bot_helper import (
     show_error_inline, enable_hide_keyboard_only
 )
 from utils.constants import (
-    RESERVE_DATA, REFRESH_RESERVED_DATA, CANCEL_RESERVATION_DATA
+    LOW_SEAT_COUNT
+)
+from utils.constants import (
+    RESERVE_DATA, REFRESH_TRACKING_DATA, REFRESH_RESERVED_DATA, CANCEL_RESERVATION_DATA
 )
 from utils.constants import (
     SET_TRACK,
@@ -36,12 +40,14 @@ from utils.constants import (
     TRACKING_UUID,
     RESERVED_SEAT,
     SEATS_LEFT_BY_PRICES,
-    LAST_REMINDED
+    LAST_REMINDED,
+    INTERVALS_INDEX,
+    IS_DANGEROUS
 )
 from utils.keyboard_helper import (
     build_tracking_prices_keyboard,
     build_tracked_actions_keyboard,
-    build_reserved_actions_keyboard,
+    build_reserved_actions_keyboard
 )
 from utils.ktmb_helper import (
     get_seats_contents
@@ -50,7 +56,7 @@ from utils.message_helper import (
     get_tracking_content
 )
 from utils.utils import (
-    utc_to_malaysia_time
+    malaysia_now_datetime
 )
 
 logging.basicConfig(
@@ -59,16 +65,13 @@ logging.basicConfig(
 logging.getLogger('httpx').setLevel(logging.WARNING)
 logger = logging.getLogger('bot')
 
-scheduler = BackgroundScheduler()
-scheduler.start()
-
 
 async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
     is_refresh = False
     is_cancel = False
-    if re.compile(f'^{REFRESH_RESERVED_DATA}/{UUID_PATTERN}$').match(query.data):
+    if re.compile(f'^{REFRESH_TRACKING_DATA}/{UUID_PATTERN}$').match(query.data):
         tracking_uuid = re.search(UUID_PATTERN, query.data).group(0)
         is_refresh = True
     elif re.compile(f'^{CANCEL_RESERVATION_DATA}/{UUID_PATTERN}$').match(query.data):
@@ -99,7 +102,9 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
                 PRICE: context.user_data.get(TRANSACTION, {}).get(PRICE),
                 RESERVED_SEAT: None,
                 SEATS_LEFT_BY_PRICES: [],
-                LAST_REMINDED: datetime.now()
+                LAST_REMINDED: malaysia_now_datetime(),
+                INTERVALS_INDEX: 0,
+                IS_DANGEROUS: False
             }
         )
 
@@ -121,12 +126,14 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
             context.user_data[TO_HIDE_KEYBOARD] = True
             await show_error_inline(
                 context,
-                res,
+                res.get('error'),
                 InlineKeyboardMarkup(build_reserved_actions_keyboard(tracking_uuid))
             )
             context.user_data[STATE] = VIEW_TRACK
             return VIEW_TRACK
-        for index, t in enumerate(context.user_data[TRACKING_LIST]):
+        else:
+            context.user_data[COOKIE] = session.cookies
+        for index, t in enumerate(context.user_data.get(TRACKING_LIST, [])):
             if t.get(TRACKING_UUID) == uuid.UUID(tracking_uuid):
                 t[RESERVED_SEAT] = None
                 context.user_data[TRACKING_LIST][index] = t
@@ -144,16 +151,15 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         session,
         context.user_data.get(TOKEN)
     )
-    if not res.get('status'):
+    if not res.get('status') and not is_refresh:
         context.user_data[TO_STRIKETHROUGH] = True
         context.user_data[TO_HIDE_KEYBOARD] = False
         context.user_data.get(VOLATILE, {}).pop(PARTIAL_CONTENT, None)
         context.user_data[TRACKING_LIST].pop()
         await show_error_inline(
             context,
-            res,
+            res.get('error'),
             InlineKeyboardMarkup(
-                # generate_tracking_keyboard(context.user_data.get(VOLATILE, {})[OVERALL_PRICES], True)
                 build_tracking_prices_keyboard(
                     context.user_data.get(VOLATILE, {})[OVERALL_PRICES],
                     f'{SET_TRACK}:',
@@ -163,91 +169,77 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         )
         context.user_data[STATE] = SET_TRACK
         return SET_TRACK
+    elif not res.get('status') and is_refresh:
+        await show_error_inline(
+            context,
+            res.get('error'),
+            InlineKeyboardMarkup(
+                build_tracking_prices_keyboard(
+                    context.user_data.get(VOLATILE, {})[OVERALL_PRICES],
+                    f'{SET_TRACK}:',
+                    True
+                )
+            )
+        )
+        context.user_data[STATE] = VIEW_TRACK
+        return VIEW_TRACK
+    elif res.get('status'):
+        context.user_data[COOKIE] = session.cookies
 
     context.user_data.get(VOLATILE, {})[PARTIAL_CONTENT] = res.get(PARTIAL_CONTENT)
     for index, t in enumerate(context.user_data.get(TRACKING_LIST, [])):
         if t.get(TRACKING_UUID) == tracking_uuid:
+            seats_left_by_prices = res.get(SEATS_LEFT_BY_PRICES)
+            if t.get(PRICE) == -1:
+                seats_left_by_tracking_price = sum(seats_left_by_prices.values())
+            else:
+                seats_left_by_tracking_price = seats_left_by_prices.get(str(t.get(PRICE)))
             t = {
                 **t,
-                SEATS_LEFT_BY_PRICES: res.get(SEATS_LEFT_BY_PRICES)
+                SEATS_LEFT_BY_PRICES: res.get(SEATS_LEFT_BY_PRICES),
+                IS_DANGEROUS: seats_left_by_tracking_price <= LOW_SEAT_COUNT
             }
             context.user_data[TRACKING_LIST][index] = t
             break
     # logger.info(context.user_data.get(TRACKING_LIST, []))
 
-    if not is_refresh:
-        chat_id = update.effective_message.chat_id
+    if not is_refresh and not check_active_jobs():
         try:
-            year, month, day = context.user_data.get(TRANSACTION, {}).get(DATE).split('-')
-            hour, minute = context.user_data.get(TRANSACTION, {}).get(DEPARTURE_TIME).split(':')
-            date_time = datetime(int(year), int(month), int(day), int(hour), int(minute)).timestamp()
+            # year, month, day = context.user_data.get(TRANSACTION, {}).get(DATE).split('-')
+            # hour, minute = context.user_data.get(TRANSACTION, {}).get(DEPARTURE_TIME).split(':')
 
-            # scheduler.add_job(my_job, 'interval', seconds=10)
+            start_tracking_job(context, update.effective_message.chat_id)
 
             # scheduler.add_job(
-            #     # alarm,
             #     sync_alarm_wrapper,
             #     'interval',
-            #     seconds=15,
-            #     start_date=datetime.now() + timedelta(seconds=15),
-            #     end_date=datetime(int(year), int(month), int(day), int(hour), int(minute)),
+            #     seconds=30,
+            #     start_date=get_next_half_minute(),
+            #     end_date=utc_to_malaysia_time(datetime(int(year), int(month), int(day), int(hour), int(minute))),
             #     args=[],
             #     kwargs={
             #         'context': context,
-            #         'data': {
-            #             COOKIE: context.user_data.get(COOKIE),
-            #             TOKEN: context.user_data.get(TOKEN),
-            #             'data': next(
-            #                 t for t in context.user_data.get(TRACKING_LIST, []) if
-            #                 t.get(TRACKING_UUID) == tracking_uuid)
-            #         },
-            #         'chat_id': chat_id
+            #         # 'data': {
+            #         #     COOKIE: context.user_data.get(COOKIE),
+            #         #     TOKEN: context.user_data.get(TOKEN),
+            #         #     'data': next(
+            #         #         t for t in context.user_data.get(TRACKING_LIST, []) if
+            #         #         t.get(TRACKING_UUID) == tracking_uuid
+            #         #     )
+            #         # },
+            #         'chat_id': update.effective_message.chat_id
             #     },
             #     id=str(tracking_uuid)
             # )
-
-            # scheduler.add_job(
-            #     alarm,
-            #     'interval',
-            #     seconds=15,
-            #     start_date=datetime.now() + timedelta(seconds=15),
-            #     end_date=datetime(int(year), int(month), int(day), int(hour), int(minute)),
-            #     args=[],
-            #     kwargs={
-            #         'context': context,
-            #         'data': {
-            #             COOKIE: context.user_data.get(COOKIE),
-            #             TOKEN: context.user_data.get(TOKEN),
-            #             'data': next(
-            #                 t for t in context.user_data.get(TRACKING_LIST, []) if t.get(TRACKING_UUID) == tracking_uuid)
-            #         },
-            #         'chat_id': chat_id
-            #     },
-            #     id=str(tracking_uuid)
-            # )
-
-            # context.job_queue.run_repeating(
-            #     alarm,
-            #     interval=15,
-            #     first=15,
-            #     last=date_time,
-            #     data={
-            #         COOKIE: context.user_data.get(COOKIE),
-            #         TOKEN: context.user_data.get(TOKEN),
-            #         'data': next(t for t in context.user_data.get(TRACKING_LIST, []) if t.get(TRACKING_UUID) == tracking_uuid)
-            #     },
-            #     name=str(tracking_uuid),
-            #     chat_id=chat_id
-            # )
+            # scheduler.start()
         except Exception as e:
             logger.error(e)
             context.user_data[TO_STRIKETHROUGH] = False
             context.user_data[TO_HIDE_KEYBOARD] = True
             await show_error_inline(
                 context,
-                {'error': 'Job scheduling error'},
+                'Job scheduling error',
                 InlineKeyboardMarkup(
-                    # generate_tracking_keyboard(context.user_data.get(VOLATILE, {})[OVERALL_PRICES], True)
                     build_tracking_prices_keyboard(
                         context.user_data.get(VOLATILE, {})[OVERALL_PRICES],
                         'set_track:',
@@ -258,7 +250,7 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
             context.user_data[STATE] = SET_TRACK
             return SET_TRACK
 
-    logger.info('Number of jobs: ' + str(len(context.job_queue.jobs())))
+    # logger.info('Number of jobs: ' + str(len(context.job_queue.jobs())))
 
     reply_markup = InlineKeyboardMarkup(build_tracked_actions_keyboard(tracking_uuid))
     price_message = 'any price' \
@@ -271,7 +263,7 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
             title
         )}'
         '\n'
-        f'<i>Refreshed at: {utc_to_malaysia_time(datetime.now()).strftime('%H:%M:%S')}</i>\n'
+        f'<i>Refreshed at: {malaysia_now_datetime().strftime('%H:%M:%S')}</i>\n'
         '\n'
         f'<b>Reserve a random seat of {price_message}?</b>'
     )
@@ -331,11 +323,13 @@ async def show_reserved(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         context.user_data.get(VOLATILE, {}).pop(PARTIAL_CONTENT, None)
         await show_error_inline(
             context,
-            res,
+            res.get('error'),
             InlineKeyboardMarkup(build_tracked_actions_keyboard(tracking_uuid))
         )
         context.user_data[STATE] = VIEW_TRACK
         return VIEW_TRACK
+    else:
+        context.user_data[COOKIE] = session.cookies
 
     context.user_data.get(VOLATILE, {})[LAYOUT_DATA] = res.get(LAYOUT_DATA)
     context.user_data.get(VOLATILE, {})[PARTIAL_CONTENT] = res.get(PARTIAL_CONTENT)
@@ -355,11 +349,13 @@ async def show_reserved(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
             context.user_data[TO_HIDE_KEYBOARD] = True
             await show_error_inline(
                 context,
-                res,
+                res.get('error'),
                 InlineKeyboardMarkup(build_tracked_actions_keyboard(tracking_uuid))
             )
             context.user_data[STATE] = VIEW_TRACK
             return VIEW_TRACK
+        else:
+            context.user_data[COOKIE] = session.cookies
 
         context.user_data.get(VOLATILE, {})[BOOKING_DATA] = res.get(BOOKING_DATA)
         coach = res.get('CoachLabel')
@@ -389,7 +385,7 @@ async def show_reserved(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
             Title.RESERVED.value
         )}'
         '\n'
-        f'<i>Refreshed at: {utc_to_malaysia_time(datetime.now()).strftime('%H:%M:%S')}</i>\n'
+        f'<i>Refreshed at: {malaysia_now_datetime().strftime('%H:%M:%S')}</i>\n'
         '\n'
         'Seat reserved successfully!\n'
         '\n'

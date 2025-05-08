@@ -44,6 +44,8 @@ TRACKING_UUID = 'tracking_uuid'
 RESERVED_SEAT = 'reserved_seat'
 SEATS_LEFT_BY_PRICES = 'seats_left_by_prices'
 LAST_REMINDED = 'last_reminded'
+INTERVALS_INDEX = 'intervals_index'
+IS_DANGEROUS = 'is_dangerous'
 
 # Bottom keyboard
 TRACK_NEW_TRAIN = 'Track New Train 🚈'
@@ -82,23 +84,6 @@ CANCEL_RESERVATION = 'Cancel Reservation'
 CANCEL_RESERVATION_DATA = 'Cancel Reservation'
 
 # Stages
-# (
-#     START,
-#     ADD_EMAIL, ADD_PASSWORD,
-#     PROFILE, SELECTED_PROFILE, CHANGE_PASSWORD,
-#     ADD_FROM_STATE, ADD_FROM_STATION,
-#     ADD_TO_STATE, ADD_TO_STATION,
-#     SHORTCUT, SELECTED_SHORTCUT,
-#     SET_EMAIL, SET_PASSWORD,
-#     SET_FROM_STATE, SET_FROM_STATION,
-#     SET_TO_STATE, SET_TO_STATION,
-#     SET_DATE,
-#     SET_TRIP,
-#     SET_TRACK,
-#     VIEW_TRACK,
-#     RESERVED,
-#     CLEAR
-# ) = range(24)
 START = 'start'
 ADD_EMAIL, ADD_PASSWORD = 'add_email', 'add_password'
 PROFILE, SELECTED_PROFILE, CHANGE_PASSWORD = 'profile', 'selected_profile', 'change_password'
@@ -112,8 +97,30 @@ SET_DATE = 'set_date'
 SET_TRIP = 'set_trip'
 SET_TRACK = 'set_track'
 VIEW_TRACK = 'view_track'
+VIEW_TRACKS = 'view_tracks'
 RESERVED = 'reserved'
 CLEAR = 'clear'
+
+# Job
+TRACKING_JOB_ID = 'tracking_job'
+TRIGGER_INTERVAL_IN_SECONDS = 30
+LOW_SEAT_COUNT = 120
+INTERVALS = [
+    TRIGGER_INTERVAL_IN_SECONDS,  # 30 seconds
+    TRIGGER_INTERVAL_IN_SECONDS,
+    TRIGGER_INTERVAL_IN_SECONDS * 2,  # 1 minute
+    TRIGGER_INTERVAL_IN_SECONDS * 2,
+    TRIGGER_INTERVAL_IN_SECONDS * 4,  # 2 minutes
+    TRIGGER_INTERVAL_IN_SECONDS * 4,
+    TRIGGER_INTERVAL_IN_SECONDS * 8,  # 4 minutes
+    TRIGGER_INTERVAL_IN_SECONDS * 8,
+    TRIGGER_INTERVAL_IN_SECONDS * 16,  # 8 minutes
+    TRIGGER_INTERVAL_IN_SECONDS * 16,
+    TRIGGER_INTERVAL_IN_SECONDS * 32,  # 16 minutes
+    TRIGGER_INTERVAL_IN_SECONDS * 32,
+    TRIGGER_INTERVAL_IN_SECONDS * 64,  # 32 minutes
+    TRIGGER_INTERVAL_IN_SECONDS * 64
+]
 
 
 class Title(Enum):
@@ -136,7 +143,7 @@ class Title(Enum):
     REFRESHED_TRACKING = '🔄 Tracking refreshed!'
     RESERVED = '🎟 New reservation made!'
     CANCEL_RESERVATION = '❎ Reservation cancelled!'
-    TRACKING_NUM = '🔍 Tracking '
+    TRACKING_NUM = '🔍 Tracking'
     ADD_PROFILE = '👤 Adding new profile...'
     ADDED_PROFILE = '✅ New profile added!'
     MANAGE_PROFILE = '👤 Managing profile...'

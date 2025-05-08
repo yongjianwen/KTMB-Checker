@@ -3,6 +3,9 @@ from datetime import datetime, timedelta
 from telegram import InlineKeyboardButton, ReplyKeyboardMarkup
 
 from .constants import (
+    FROM_STATION_NAME, TO_STATION_NAME, TRACKING_UUID
+)
+from .constants import (
     TRACK_NEW_TRAIN, VIEW_TRACKING,
     ADD_NEW_PROFILE, ADD_NEW_PROFILE_DATA,
     ADD_NEW_SHORTCUT, ADD_NEW_SHORTCUT_DATA,
@@ -17,11 +20,10 @@ from .constants import (
     REFRESHED_TRACKING, REFRESH_TRACKING_DATA,
     CANCEL_TRACKING, CANCEL_TRACKING_DATA,
     REFRESH_RESERVED, REFRESH_RESERVED_DATA,
-    CANCEL_RESERVATION, CANCEL_RESERVATION_DATA
+    CANCEL_RESERVATION, CANCEL_RESERVATION_DATA,
+    Title
 )
-from .constants import (
-    FROM_STATION_NAME, TO_STATION_NAME
-)
+from .utils import get_number_emoji_from
 
 
 def build_bottom_reply_markup():
@@ -240,7 +242,7 @@ def build_tracking_prices_keyboard(prices, prefix='', back=False):
     return keyboard
 
 
-def build_tracked_actions_keyboard(uuid):
+def build_tracked_actions_keyboard(uuid, prefix='', back=False):
     keyboard = [
         [
             InlineKeyboardButton(RESERVE, callback_data=f'{RESERVE_DATA}/{uuid}'),
@@ -251,10 +253,28 @@ def build_tracked_actions_keyboard(uuid):
         ]
     ]
 
+    if back:
+        keyboard.append([InlineKeyboardButton(BACK, callback_data=prefix + BACK_DATA)])
+
     return keyboard
 
 
-def build_reserved_actions_keyboard(uuid):
+def build_view_trackings_keyboard(trackings, prefix=''):
+    keyboard = []
+
+    for index, t in enumerate(trackings):
+        keyboard.append([
+            InlineKeyboardButton(
+                # f'{Title.TRACKING_NUM.value} {index + 1}',
+                f'🔍 Tracking {get_number_emoji_from(index + 1)}',
+                callback_data=prefix + str(t.get(TRACKING_UUID))
+            )
+        ])
+
+    return keyboard
+
+
+def build_reserved_actions_keyboard(uuid, prefix='', back=False):
     keyboard = [
         [
             InlineKeyboardButton(REFRESH_RESERVED, callback_data=f'{REFRESH_RESERVED_DATA}/{uuid}')
@@ -263,6 +283,9 @@ def build_reserved_actions_keyboard(uuid):
             InlineKeyboardButton(CANCEL_RESERVATION, callback_data=f'{CANCEL_RESERVATION_DATA}/{uuid}')
         ]
     ]
+
+    if back:
+        keyboard.append([InlineKeyboardButton(BACK, callback_data=prefix + BACK_DATA)])
 
     return keyboard
 

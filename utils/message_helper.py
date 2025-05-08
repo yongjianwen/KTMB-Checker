@@ -7,6 +7,7 @@ from .constants import (
     DEPARTURE_TIME, ARRIVAL_TIME,
     PARTIAL_CONTENT
 )
+from .utils import get_weekday
 
 
 def get_tracking_content(transaction, volatile, title):
@@ -50,13 +51,22 @@ def get_tracking_content(transaction, volatile, title):
     return message
 
 
-def get_weekday(weekday):
-    return {
-        0: 'Monday',
-        1: 'Tuesday',
-        2: 'Wednesday',
-        3: 'Thursday',
-        4: 'Friday',
-        5: 'Saturday',
-        6: 'Sunday'
-    }.get(weekday, '')
+def get_seats_left_by_prices_content(prev, cur):
+    message = '<b><u>Seats Left by Price(s)</u></b>\n'
+    keys_to_remove = []
+    for key, value in prev.items():
+        if key in cur:
+            message = message + f'RM {key}: {value} ➡️ {cur.get(key)}\n'
+            keys_to_remove.append(key)
+
+    for key in keys_to_remove:
+        prev.pop(key, None)
+        cur.pop(key, None)
+
+    for key, value in prev.items():
+        message = message + f'RM {key}: {value} ➡️ 0\n'
+
+    for key, value in cur.items():
+        message = message + f'RM {key}: 0 ➡️ {value}\n'
+
+    return message

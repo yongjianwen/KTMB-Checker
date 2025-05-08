@@ -12,7 +12,8 @@ from services.ktmb import (
     get_stations
 )
 from utils.bot_helper import (
-    strikethrough_last_message, show_error_inline, enable_strikethrough, disable_strikethrough
+    strikethrough_last_message, show_error_inline,
+    enable_strikethrough, enable_hide_keyboard_only, disable_strikethrough
 )
 from utils.constants import (
     BACK_DATA,
@@ -68,9 +69,11 @@ async def build_from_state(update, context, state, prefix, show_shortcuts, title
     res = get_stations(session)
     if not res.get('status'):
         enable_strikethrough(context.user_data)
-        await show_error_inline(context, res, None)
+        await show_error_inline(context, res.get('error'), None)
         context.user_data[STATE] = state
         return state
+    else:
+        context.user_data[COOKIE] = session.cookies
 
     context.user_data[STATIONS_DATA] = res.get(STATIONS_DATA)
 
@@ -230,7 +233,7 @@ async def manage_shortcuts(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     else:
         await query.answer()
 
-    enable_strikethrough(context.user_data)
+    enable_hide_keyboard_only(context.user_data)
 
     reply_markup = InlineKeyboardMarkup(
         build_shortcuts_keyboard(context.user_data.get(SHORTCUTS, {}), f'{SHORTCUT}:', True)

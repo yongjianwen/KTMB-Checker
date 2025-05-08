@@ -8,7 +8,7 @@ from telegram.ext import (
 
 from utils.bot_helper import (
     strikethrough_last_message,
-    enable_strikethrough, disable_strikethrough,
+    enable_strikethrough, enable_hide_keyboard_only, disable_strikethrough,
     is_logged_in
 )
 from utils.constants import (
@@ -39,7 +39,7 @@ async def manage_profiles(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     else:
         await query.answer()
 
-    enable_strikethrough(context.user_data)
+    enable_hide_keyboard_only(context.user_data)
 
     reply_markup = InlineKeyboardMarkup(
         build_profiles_keyboard(context.user_data.get(PROFILES, {}), f'{PROFILE}:', True)

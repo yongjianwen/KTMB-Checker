@@ -17,13 +17,14 @@ async def strikethrough_last_message(context):
     if last_message:
         try:
             if context.user_data.get(TO_STRIKETHROUGH):
-                context.user_data[LAST_MESSAGE] = await context.bot.edit_message_text(
-                    chat_id=last_message.chat_id,
-                    message_id=last_message.message_id,
-                    text=f'<s>{last_message.text_html}</s>\n\n<b><i>Transaction cancelled</i></b>',
-                    reply_markup=None,
-                    parse_mode='HTML'
-                )
+                if last_message != context.user_data.get(LAST_MESSAGE).text_html:
+                    context.user_data[LAST_MESSAGE] = await context.bot.edit_message_text(
+                        chat_id=last_message.chat_id,
+                        message_id=last_message.message_id,
+                        text=f'<s>{last_message.text_html}</s>\n\n<b><i>Transaction cancelled</i></b>',
+                        reply_markup=None,
+                        parse_mode='HTML'
+                    )
             elif context.user_data.get(TO_HIDE_KEYBOARD):
                 context.user_data[LAST_MESSAGE] = await context.bot.edit_message_reply_markup(
                     chat_id=last_message.chat_id,
@@ -34,13 +35,17 @@ async def strikethrough_last_message(context):
             logger.info(e)
 
 
-async def show_error_inline(context, res, reply_markup=None):
+async def show_error_inline(context, error_message, reply_markup=None):
     last_message = context.user_data.get(LAST_MESSAGE)
     if last_message:
         message = (
-            f'{get_tracking_content(context.user_data.get(TRANSACTION, {}), context.user_data.get(VOLATILE, {}))}'
+            f'{get_tracking_content(
+                context.user_data.get(TRANSACTION, {}),
+                context.user_data.get(VOLATILE, {}),
+                'Don\'t know what title'
+            )}'
             '\n'
-            f'❌ We encountered an error. Please try again later.\n\n👾 For dev: {res.get('error')}'
+            f'❌ We encountered an error. Please try again later.\n\n👾 For dev: {error_message}'
         )
         if message != last_message.text_html:
             context.user_data[LAST_MESSAGE] = await context.bot.edit_message_text(
@@ -52,10 +57,10 @@ async def show_error_inline(context, res, reply_markup=None):
             )
 
 
-async def show_error_reply(update, context, res):
+async def show_error_reply(update, context, error_message):
     disable_strikethrough(context.user_data)
     context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
-        f'❌ We encountered an error. Please try again later.\n\n👾 For dev: {res.get('error')}',
+        f'❌ We encountered an error. Please try again later.\n\n👾 For dev: {error_message}',
         reply_markup=None,
         parse_mode='HTML'
     )

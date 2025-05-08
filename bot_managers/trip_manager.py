@@ -10,7 +10,7 @@ from telegram.ext import (
 )
 
 from services.ktmb import (
-    get_trips
+    get_trips, login, logout
 )
 from utils.bot_helper import (
     show_error_inline, enable_strikethrough
@@ -27,7 +27,7 @@ from utils.constants import (
     Title
 )
 from utils.constants import (
-    UUID_PATTERN, COOKIE, TOKEN, LAST_MESSAGE, STATE, TO_STRIKETHROUGH, TO_HIDE_KEYBOARD,
+    UUID_PATTERN, COOKIE, TOKEN, EMAIL, PASSWORD, LAST_MESSAGE, STATE, TO_STRIKETHROUGH, TO_HIDE_KEYBOARD,
     SHORTCUTS,
     TRANSACTION, VOLATILE, STATIONS_DATA, FROM_STATE_NAME, FROM_STATION_ID, FROM_STATION_NAME,
     TO_STATE_NAME, TO_STATION_ID, TO_STATION_NAME,
@@ -132,12 +132,53 @@ async def set_trip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         context.user_data.get(TOKEN)
     )
     if not res.get('status'):
-        context.user_data[TO_STRIKETHROUGH] = True
-        context.user_data[TO_HIDE_KEYBOARD] = False
-        await show_error_inline(context, res, InlineKeyboardMarkup(build_dates_keyboard(f'{SET_DATE}:', True)))
-        context.user_data.get(TRANSACTION, {}).pop(DATE, None)
-        context.user_data[STATE] = SET_DATE
-        return SET_DATE
+        logout(session)
+        session = requests.Session()
+        res = login(session, context.user_data.get(EMAIL), context.user_data.get(PASSWORD))
+        if res.get('status'):
+            context.user_data[COOKIE] = session.cookies
+            context.user_data[TOKEN] = res.get(TOKEN)
+
+            res = get_trips(
+                session,
+                datetime(int(year), int(month), int(day)),
+                get_station_by_id(
+                    context.user_data.get(STATIONS_DATA, []),
+                    context.user_data.get(TRANSACTION, {}).get(FROM_STATION_ID)
+                ),
+                get_station_by_id(
+                    context.user_data.get(STATIONS_DATA, []),
+                    context.user_data.get(TRANSACTION, {}).get(TO_STATION_ID)
+                ),
+                context.user_data.get(TOKEN)
+            )
+
+            if not res.get('status'):
+                context.user_data[TO_STRIKETHROUGH] = True
+                context.user_data[TO_HIDE_KEYBOARD] = False
+                await show_error_inline(
+                    context,
+                    res.get('error'),
+                    InlineKeyboardMarkup(build_dates_keyboard(f'{SET_DATE}:', True))
+                )
+                context.user_data.get(TRANSACTION, {}).pop(DATE, None)
+                context.user_data[STATE] = SET_DATE
+                return SET_DATE
+            else:
+                context.user_data[COOKIE] = session.cookies
+        else:
+            context.user_data[TO_STRIKETHROUGH] = True
+            context.user_data[TO_HIDE_KEYBOARD] = False
+            await show_error_inline(
+                context,
+                res.get('error'),
+                InlineKeyboardMarkup(build_dates_keyboard(f'{SET_DATE}:', True))
+            )
+            context.user_data.get(TRANSACTION, {}).pop(DATE, None)
+            context.user_data[STATE] = SET_DATE
+            return SET_DATE
+    else:
+        context.user_data[COOKIE] = session.cookies
 
     context.user_data.get(VOLATILE, {})[SEARCH_DATA] = res.get(SEARCH_DATA)
     context.user_data.get(VOLATILE, {})[TRIPS_DATA] = json.loads(json.dumps(res.get(TRIPS_DATA)))
