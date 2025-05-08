@@ -299,11 +299,12 @@ async def alarm(context, chat_id) -> None:
         interval = intervals[intervals_index]
 
         logger.info(f'>> Update: {new_seats_left_by_prices}')
-        t[SEATS_LEFT_BY_PRICES] = {**new_seats_left_by_prices}
+        # t[SEATS_LEFT_BY_PRICES] = {**new_seats_left_by_prices}
 
         if to_remind and last_reminded + timedelta(seconds=interval) < malaysia_now_datetime():
             t[LAST_REMINDED] = now_datetime.replace(microsecond=0)
             t[INTERVALS_INDEX] = min(intervals_index + 1, len(intervals) - 1)
+            t[SEATS_LEFT_BY_PRICES] = {**new_seats_left_by_prices}
 
             # async with context.bot:
             await context.bot.send_chat_action(
