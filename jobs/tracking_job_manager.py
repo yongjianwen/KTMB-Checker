@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, time
 
 import requests
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from telegram.constants import ChatAction
 
 from services.ktmb import (
@@ -52,7 +53,8 @@ logging.basicConfig(
 logging.getLogger('httpx').setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
-scheduler = AsyncIOScheduler()
+# scheduler = AsyncIOScheduler()
+scheduler = BackgroundScheduler()
 
 
 def start_tracking_job(context, chat_id):

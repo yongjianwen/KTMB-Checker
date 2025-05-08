@@ -409,7 +409,7 @@ conv_handler = ConversationHandler(
         CommandHandler('restore', download_conversation_data),
         MessageHandler(filters.Text([TRACK_NEW_TRAIN]), set_from_state),
         MessageHandler(filters.Text([VIEW_TRACKING]), view_trackings),
-        CallbackQueryHandler(print_unknown_callback),
+        # CallbackQueryHandler(print_unknown_callback),
         MessageHandler(filters.ALL, print_unknown_message)
     ],
     name='ktmb_conversation',
