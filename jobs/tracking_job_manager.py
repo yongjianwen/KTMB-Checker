@@ -91,7 +91,8 @@ def sync_alarm_wrapper(*args, **kwargs):
     try:
         return loop.run_until_complete(alarm(*args, **kwargs))
     finally:
-        loop.close()
+        logger.info('>> Fake Loop closed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        # loop.close()
 
 
 async def alarm(context, chat_id) -> None:

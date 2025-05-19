@@ -171,6 +171,8 @@ def get_trips(session, trip_date, from_station, to_station, token):
         trips_data = []
         for trip_row in trip_rows:
             tds = trip_row.find_all('td')
+            if len(tds) == 1:
+                break
             overnight = tds[2].find('span') is not None
             trips_data.append(
                 {

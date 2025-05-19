@@ -226,6 +226,29 @@ async def download_conversation_data(update: Update, context: ContextTypes.DEFAU
     return START
 
 
+async def view_tracking_job_params(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await context.bot.send_chat_action(
+        chat_id=update.effective_chat.id,
+        action=ChatAction.TYPING
+    )
+    await strikethrough_last_message(context)
+
+    disable_strikethrough(context.user_data)
+
+    message = (
+        f'interval: {context.bot_data.get(TRIGGER_INTERVAL_IN_SECONDS)} s\n'
+        f'low: {context.bot_data.get(LOW_SEAT_COUNT)}'
+    )
+
+    context.user_data[LAST_MESSAGE] = await update.effective_message.reply_text(
+        message,
+        reply_markup=None
+    )
+
+    context.user_data[STATE] = START
+    return START
+
+
 async def update_tracking_job_param(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await context.bot.send_chat_action(
         chat_id=update.effective_chat.id,
@@ -464,6 +487,7 @@ conv_handler = ConversationHandler(
         CommandHandler('backup', upload_conversation_data),
         CommandHandler('restore', download_conversation_data),
         CommandHandler('set', update_tracking_job_param),
+        CommandHandler('view', view_tracking_job_params),
         MessageHandler(filters.Text([TRACK_NEW_TRAIN]), set_from_state),
         MessageHandler(filters.Text([VIEW_TRACKING]), view_trackings),
         # CallbackQueryHandler(print_unknown_callback),

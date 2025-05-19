@@ -363,23 +363,26 @@ async def view_single_tracking(update: Update, context: ContextTypes.DEFAULT_TYP
 
     search_data = res.get(SEARCH_DATA)
     trips_data = json.loads(json.dumps(res.get(TRIPS_DATA)))
-    trip = next(tr for tr in trips_data if tr.get(DEPARTURE_TIME) == departure_time)
-    trip_data = trip.get(TRIP_DATA)
+    if trips_data:
+        trip = next(tr for tr in trips_data if tr.get(DEPARTURE_TIME) == departure_time)
+        trip_data = trip.get(TRIP_DATA)
 
-    res = await get_seats_contents(
-        search_data,
-        trip_data,
-        session,
-        context.user_data.get(TOKEN)
-    )
-    if not res.get('status'):
-        await show_error_reply(update, context, res.get('error'))
-        context.user_data[STATE] = START
-        return START
+        res = await get_seats_contents(
+            search_data,
+            trip_data,
+            session,
+            context.user_data.get(TOKEN)
+        )
+        if not res.get('status'):
+            await show_error_reply(update, context, res.get('error'))
+            context.user_data[STATE] = START
+            return START
+        else:
+            context.user_data[COOKIE] = session.cookies
+
+        partial_content = res.get(PARTIAL_CONTENT)
     else:
-        context.user_data[COOKIE] = session.cookies
-
-    partial_content = res.get(PARTIAL_CONTENT)
+        partial_content = 'No trips found\n'
 
     if reserved_seat is None:
         reply_markup = InlineKeyboardMarkup(build_tracked_actions_keyboard(tracking_uuid, f'{VIEW_TRACK}:', True))
