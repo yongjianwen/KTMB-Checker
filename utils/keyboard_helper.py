@@ -245,7 +245,7 @@ def build_tracking_prices_keyboard(prices, prefix='', back=False):
 def build_tracked_actions_keyboard(uuid, prefix='', back=False):
     keyboard = [
         [
-            InlineKeyboardButton(RESERVE, callback_data=f'{RESERVE_DATA}/{uuid}'),
+            # InlineKeyboardButton(RESERVE, callback_data=f'{RESERVE_DATA}/{uuid}'),
             InlineKeyboardButton(REFRESHED_TRACKING, callback_data=f'{REFRESH_TRACKING_DATA}/{uuid}')
         ],
         [

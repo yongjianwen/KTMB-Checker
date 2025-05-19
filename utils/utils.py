@@ -36,16 +36,45 @@ def malaysia_now_time():
 
 
 def get_next_time_by_interval(interval):
-    """
-    interval must be < 60
-    """
     now = malaysia_now_datetime()
-    # e.g. interval = 30
-    # t= 5 => (60 -  5) % 30 = 55 % 30 = 25 seconds
-    # t=33 => (60 - 33) % 30 = 27 % 30 = 27 seconds
-    seconds_until_30_or_60 = (60 - now.second) % interval
-    ans = now + timedelta(seconds=seconds_until_30_or_60)
-    ans = ans.replace(microsecond=0)
+    # if interval <= 60:
+    #     # e.g. interval = 30
+    #     # t= 5 => (60 -  5) % 30 = 55 % 30 = 25 seconds
+    #     # t=33 => (60 - 33) % 30 = 27 % 30 = 27 seconds
+    #     seconds_until_30_or_60 = (60 - now.second) % interval
+    #     ans = now + timedelta(seconds=seconds_until_30_or_60)
+    #     ans = ans.replace(microsecond=0)
+    # else:
+    #     # e.g. interval = 300 (5 minutes)
+    #     # m= 3 => (60 -  3) % 5 = 2 minutes
+    #     # m=33 => (60 - 33) % 5 = 2 minutes
+    #     seconds_until = ((60 - now.minute - 1) % (interval // 60)) * 60
+    #     if interval % 60 != 0:
+    #         seconds_until = seconds_until + (60 - now.second) % (interval % 60)
+    #     ans = now + timedelta(seconds=seconds_until)
+    #     ans = ans.replace(microsecond=0)
+
+    if interval <= 60:  # For intervals ≤ 1 minute
+        # Calculate next interval in current minute
+        next_second = ((now.second // interval) + 1) * interval
+
+        if next_second >= 60:
+            # Roll over to next minute
+            ans = now.replace(second=0, microsecond=0) + timedelta(minutes=1)
+        else:
+            ans = now.replace(second=next_second, microsecond=0)
+    else:
+        # For intervals > 1 minute
+        interval_minutes = interval // 60
+        current_minute = now.minute
+        next_minute = ((current_minute // interval_minutes) + 1) * interval_minutes
+
+        if next_minute >= 60:
+            # Roll over to next hour
+            ans = now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+        else:
+            ans = now.replace(minute=next_minute, second=0, microsecond=0)
+
     return ans
 
 

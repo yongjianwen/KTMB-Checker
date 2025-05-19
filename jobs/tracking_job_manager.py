@@ -67,10 +67,14 @@ def start_tracking_job(context, chat_id):
     # load_dotenv()
     # trigger_interval_in_seconds = int(os.getenv('TRIGGER_INTERVAL_IN_SECONDS'))
 
+    logger.info(str(get_next_time_by_interval(
+        context.bot_data.get(TRIGGER_INTERVAL_IN_SECONDS, DEFAULT_TRIGGER_INTERVAL_IN_SECONDS)
+    )))
     scheduler.add_job(
         sync_alarm_wrapper,
         trigger='interval',
         id=f'{TRACKING_JOB_ID}_{chat_id}',
+        name=f'{TRACKING_JOB_ID}_{chat_id}',
         seconds=context.bot_data.get(TRIGGER_INTERVAL_IN_SECONDS, DEFAULT_TRIGGER_INTERVAL_IN_SECONDS),
         start_date=get_next_time_by_interval(
             context.bot_data.get(TRIGGER_INTERVAL_IN_SECONDS, DEFAULT_TRIGGER_INTERVAL_IN_SECONDS)
@@ -91,7 +95,7 @@ def sync_alarm_wrapper(*args, **kwargs):
     try:
         return loop.run_until_complete(alarm(*args, **kwargs))
     finally:
-        logger.info('>> Fake Loop closed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        logger.info('>> Loop not closed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
         # loop.close()
 
 
@@ -176,7 +180,7 @@ async def alarm(context, chat_id) -> None:
 
         if next_remind_time > malaysia_now_datetime():
             logger.info(f'>> Job skipped - have not reached next interval at {next_remind_time.strftime('%H:%M:%S')}')
-            return
+            continue
         # else:
         #     t[LAST_REMINDED] = malaysia_now_datetime()
         #     t[INTERVALS_INDEX] = min(intervals_index + 1, len(INTERVALS) - 1)
