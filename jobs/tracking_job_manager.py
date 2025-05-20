@@ -1,12 +1,10 @@
 import asyncio
 import json
 import logging
-import os
 from datetime import datetime, timedelta, time
 
 import requests
 from apscheduler.schedulers.background import BackgroundScheduler
-from dotenv import load_dotenv
 from telegram.constants import ChatAction
 
 from services.ktmb import (
@@ -32,12 +30,13 @@ from utils.constants import (
     SEATS_LEFT_BY_PRICES,
     LAST_REMINDED,
     INTERVALS_INDEX,
-    IS_DANGEROUS
+    IS_DANGEROUS,
+    LAST_RUN, LAST_API_RUN
 )
 from utils.constants import (
     TRACKING_JOB_ID,
     TRIGGER_INTERVAL_IN_SECONDS, LOW_SEAT_COUNT,
-    DEFAULT_TRIGGER_INTERVAL_IN_SECONDS, DEFAULT_LOW_SEAT_COUNT
+    DEFAULT_TRIGGER_INTERVAL_IN_SECONDS
 )
 from utils.ktmb_helper import (
     get_station_by_id, get_seats_contents
@@ -59,17 +58,10 @@ logger = logging.getLogger(__name__)
 scheduler = BackgroundScheduler()
 
 
-# trigger_interval_in_seconds = 30
-# low_seat_count = 20
-
-
 def start_tracking_job(context, chat_id):
-    # load_dotenv()
-    # trigger_interval_in_seconds = int(os.getenv('TRIGGER_INTERVAL_IN_SECONDS'))
-
-    logger.info(str(get_next_time_by_interval(
-        context.bot_data.get(TRIGGER_INTERVAL_IN_SECONDS, DEFAULT_TRIGGER_INTERVAL_IN_SECONDS)
-    )))
+    logger.info(
+        f'>> {chat_id} -- start_date: {get_next_time_by_interval(context.bot_data.get(TRIGGER_INTERVAL_IN_SECONDS, DEFAULT_TRIGGER_INTERVAL_IN_SECONDS))}'
+    )
     scheduler.add_job(
         sync_alarm_wrapper,
         trigger='interval',
@@ -95,7 +87,8 @@ def sync_alarm_wrapper(*args, **kwargs):
     try:
         return loop.run_until_complete(alarm(*args, **kwargs))
     finally:
-        logger.info('>> Loop not closed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        pass
+        # logger.info('>> Loop closed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
         # loop.close()
 
 
@@ -122,11 +115,11 @@ async def alarm(context, chat_id) -> None:
         trigger_interval_in_seconds * 64
     ]
 
-    logger.info(f'trigger_interval_in_seconds: {trigger_interval_in_seconds}')
-    logger.info(f'low_seat_count: {low_seat_count}')
+    logger.info(f'>> {chat_id} -- trigger_interval_in_seconds: {trigger_interval_in_seconds}')
+    logger.info(f'>> {chat_id} -- low_seat_count: {low_seat_count}')
 
     if len(context.user_data.get(TRACKING_LIST, [])) == 0:
-        logger.info('>> Job skipped - no tracking found')
+        logger.info(f'>> {chat_id} -- Job skipped - no tracking found')
         return
 
     now_datetime = malaysia_now_datetime()
@@ -135,7 +128,7 @@ async def alarm(context, chat_id) -> None:
     end_time = time(hour=7, minute=0)
     if (start_time <= now_time) or (now_time <= end_time):
         logger.info(
-            f'>> Job skipped - time is between {start_time.hour:02d}:{start_time.minute:02d} and {end_time.hour:02d}:{end_time.minute:02d} inclusive'
+            f'>> {chat_id} -- Job skipped - time is between {start_time.hour:02d}:{start_time.minute:02d} and {end_time.hour:02d}:{end_time.minute:02d} inclusive'
         )
         return
 
@@ -144,7 +137,7 @@ async def alarm(context, chat_id) -> None:
 
     res = get_stations(session)
     if not res.get('status'):
-        logger.info('>> Get stations error')
+        logger.info(f'>> {chat_id} -- Get stations error')
         return
     else:
         context.user_data[COOKIE] = session.cookies
@@ -152,7 +145,9 @@ async def alarm(context, chat_id) -> None:
     stations_data = res.get(STATIONS_DATA)
 
     for index, t in enumerate(context.user_data.get(TRACKING_LIST, [])):
-        logger.info(f'>> Tracking {index}')
+        t[LAST_RUN] = malaysia_now_datetime()
+
+        logger.info(f'>> {chat_id} -- Tracking {index}')
         tracking_uuid = t.get(TRACKING_UUID)
         from_state_name = t.get(FROM_STATE_NAME)
         from_station_id = t.get(FROM_STATION_ID)
@@ -175,11 +170,12 @@ async def alarm(context, chat_id) -> None:
         next_remind_time = (last_reminded + timedelta(seconds=interval)).replace(microsecond=0)
 
         logger.info(
-            f'>> Last reminded: {last_reminded}, Intervals index: {intervals_index}, Interval: {interval}, Next remind: {next_remind_time}')
-        logger.info(f'>> Prev seats left by prices: {prev_seats_left_by_prices}')
+            f'>> {chat_id} -- Last reminded: {last_reminded}, Intervals index: {intervals_index}, Interval: {interval}, Next remind: {next_remind_time}')
+        logger.info(f'>> {chat_id} -- Prev seats left by prices: {prev_seats_left_by_prices}')
 
         if next_remind_time > malaysia_now_datetime():
-            logger.info(f'>> Job skipped - have not reached next interval at {next_remind_time.strftime('%H:%M:%S')}')
+            logger.info(
+                f'>> {chat_id} -- Job skipped - have not reached next interval at {next_remind_time.strftime('%H:%M:%S')}')
             continue
         # else:
         #     t[LAST_REMINDED] = malaysia_now_datetime()
@@ -194,8 +190,8 @@ async def alarm(context, chat_id) -> None:
             context.user_data.get(TOKEN)
         )
         if not res.get('status'):
-            logger.info('>> Get trips error')
-            logger.info('>> Retrying...')
+            logger.info(f'>> {chat_id} -- Get trips error')
+            logger.info(f'>> {chat_id} -- Retrying...')
             logout(session)
             session = requests.Session()
             res = login(session, context.user_data.get(EMAIL), context.user_data.get(PASSWORD))
@@ -215,7 +211,7 @@ async def alarm(context, chat_id) -> None:
                     return
                 else:
                     context.user_data[COOKIE] = session.cookies
-                    logger.info('>> Retry successful')
+                    logger.info(f'>> {chat_id} -- Retry successful')
             else:
                 return
         else:
@@ -233,7 +229,7 @@ async def alarm(context, chat_id) -> None:
             context.user_data.get(TOKEN)
         )
         if not res.get('status'):
-            logger.info('>> Get seats contents error')
+            logger.info(f'>> {chat_id} -- Get seats contents error')
             return
         else:
             context.user_data[COOKIE] = session.cookies
@@ -241,7 +237,7 @@ async def alarm(context, chat_id) -> None:
         partial_content = res.get(PARTIAL_CONTENT)
         new_seats_left_by_prices = res.get(SEATS_LEFT_BY_PRICES)
 
-        logger.info(f'>> New seats left by prices: {new_seats_left_by_prices}')
+        logger.info(f'>> {chat_id} -- New seats left by prices: {new_seats_left_by_prices}')
 
         if price == -1:
             seats_left_by_tracking_price = sum(new_seats_left_by_prices.values())
@@ -249,45 +245,45 @@ async def alarm(context, chat_id) -> None:
             seats_left_by_tracking_price = new_seats_left_by_prices.get(str(price))
         t[IS_DANGEROUS] = (seats_left_by_tracking_price or 0) <= low_seat_count
 
-        logger.info(f'>> Is dangerous: {t.get(IS_DANGEROUS)}')
+        logger.info(f'>> {chat_id} -- Is dangerous: {t.get(IS_DANGEROUS)}')
 
         to_remind = False
         reason = ''
         # selected a price and initial was 0
         if price != -1 and str(price) not in prev_seats_left_by_prices:
-            # logger.info('A')
+            # logger.info(f'>> {chat_id} -- A')
             if str(price) in new_seats_left_by_prices:
-                # logger.info('B')
+                # logger.info(f'>> {chat_id} -- B')
                 to_remind = True
                 reason = '‼️ New seat(s) has appeared!'
         # selected any price and initial was 0
         elif price == -1 and not prev_seats_left_by_prices:
-            # logger.info('C')
+            # logger.info(f'>> {chat_id} -- C')
             if new_seats_left_by_prices:
-                # logger.info('D')
+                # logger.info(f'>> {chat_id} -- D')
                 to_remind = True
                 reason = '‼️ New seat(s) has appeared!'
         else:
-            logger.info('E')
+            logger.info(f'>> {chat_id} -- E')
             # selected a price/any price and initial was not 0, but now sold out
             if not new_seats_left_by_prices:
-                logger.info('J')
+                logger.info(f'>> {chat_id} -- J')
                 to_remind = True
                 reason = '‼️ Tickets are sold out!'
             else:
                 # # selected a price and initial was not 0
                 # for p, s in new_seats_left_by_prices.items():
-                #     logger.info('F')
+                #     logger.info(f'>> {chat_id} -- F')
                 #     if p == str(price) and s < prev_seats_left_by_prices.get(p):
-                #         logger.info('G')
+                #         logger.info(f'>> {chat_id} -- G')
                 #         to_remind = True
                 #         reason = '‼️ Tickets are selling out!'
                 #         break
                 # # selected any price and initial was not 0
                 # for p, s in new_seats_left_by_prices.items():
-                #     logger.info('H')
+                #     logger.info(f'>> {chat_id} -- H')
                 #     if price == -1 and s < prev_seats_left_by_prices.get(p, 0):
-                #         logger.info('I')
+                #         logger.info(f'>> {chat_id} -- I')
                 #         to_remind = True
                 #         reason = '‼️ Tickets are selling out!'
                 #         break
@@ -295,7 +291,7 @@ async def alarm(context, chat_id) -> None:
                     to_remind = True
                     reason = f'‼️ Less than {low_seat_count} tickets!'
 
-        logger.info(f'>> To remind: {to_remind}')
+        logger.info(f'>> {chat_id} -- To remind: {to_remind}')
 
         if not to_remind or (not is_dangerous and t.get(IS_DANGEROUS)):  # previously not dangerous, but now dangerous
             t[INTERVALS_INDEX] = 0
@@ -303,15 +299,16 @@ async def alarm(context, chat_id) -> None:
         intervals_index = t.get(INTERVALS_INDEX, 0)
         interval = intervals[intervals_index]
 
-        logger.info(f'>> Update: {new_seats_left_by_prices}')
+        logger.info(f'>> {chat_id} -- Update: {new_seats_left_by_prices}')
         # t[SEATS_LEFT_BY_PRICES] = {**new_seats_left_by_prices}
+
+        t[LAST_API_RUN] = malaysia_now_datetime()
 
         if to_remind and last_reminded + timedelta(seconds=interval) < malaysia_now_datetime():
             t[LAST_REMINDED] = now_datetime.replace(microsecond=0)
             t[INTERVALS_INDEX] = min(intervals_index + 1, len(intervals) - 1)
             t[SEATS_LEFT_BY_PRICES] = {**new_seats_left_by_prices}
 
-            # async with context.bot:
             await context.bot.send_chat_action(
                 chat_id=chat_id,
                 action=ChatAction.TYPING
@@ -362,9 +359,9 @@ async def alarm(context, chat_id) -> None:
                 )
 
 
-def check_active_jobs():
+def check_active_jobs(chat_id):
     for job in scheduler.get_jobs():
-        if job.next_run_time is not None:
+        if job.next_run_time is not None and job.id == f'{TRACKING_JOB_ID}_{chat_id}':
             return True
     return False
 

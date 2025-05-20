@@ -1,5 +1,5 @@
 .env
-# ktmb_conversation_data
+ktmb_conversation_data
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

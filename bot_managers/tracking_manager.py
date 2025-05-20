@@ -227,23 +227,9 @@ async def view_trackings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     message = f'<b>👀 You currently have {count} tracking{'' if count == 1 else 's'}</b>\n\n'
 
     for index, t in enumerate(context.user_data.get(TRACKING_LIST, [])):
-        # weekday = get_weekday(datetime.strptime(t.get(DATE), '%Y-%m-%d').weekday())
-        # message = message + (
-        #     f'Tracking {get_number_emoji_from(index + 1)}\n'
-        #     f'{t.get(FROM_STATION_NAME)} ➡️ {t.get(TO_STATION_NAME)}\n'
-        #     f'{t.get(DATE)} ({weekday})\n'
-        #     f'{t.get(DEPARTURE_TIME)} - {t.get(ARRIVAL_TIME)}'
-        # )
-        # keyboard.append([
-        #     InlineKeyboardButton(
-        #         f'{Title.TRACKING_NUM.value} {index + 1}',
-        #         callback_data=f'{VIEW_TRACKS}/{t.get(TRACKING_UUID)}'
-        #     )
-        # ])
         message = message + get_tracking_content(
             t,
             {},
-            # f'{Title.TRACKING_NUM.value} {get_number_emoji_from(index + 1)}'
             f'⬇️ Tracking {get_number_emoji_from(index + 1)}'
         ) + '\n'
 

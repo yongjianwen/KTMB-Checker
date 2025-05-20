@@ -5,7 +5,8 @@ from .constants import (
     TO_STATION_NAME, TO_STATE_NAME,
     DATE,
     DEPARTURE_TIME, ARRIVAL_TIME,
-    PARTIAL_CONTENT
+    PARTIAL_CONTENT,
+    LAST_RUN, LAST_API_RUN
 )
 from .utils import get_weekday
 
@@ -19,6 +20,8 @@ def get_tracking_content(transaction, volatile, title):
     departure_time = transaction.get(DEPARTURE_TIME)
     arrival_time = transaction.get(ARRIVAL_TIME)
     partial_content = volatile.get(PARTIAL_CONTENT) or ''
+    last_run_value = transaction.get(LAST_RUN)
+    last_api_run_value = transaction.get(LAST_API_RUN)
 
     title = f'<b>{title}</b>\n'
     departure = '' if from_state_name is None else (
@@ -36,6 +39,12 @@ def get_tracking_content(transaction, volatile, title):
     time = '' if departure_time is None and arrival_time is None else (
         f'Time: <b>{departure_time} - {arrival_time}</b>\n'
     )
+    last_run = ''
+    if last_run_value is not None:
+        last_run = f'Last run: {last_run_value.strftime('%Y-%m-%d %H:%M:%S')}'
+    last_api_run = ''
+    if last_api_run_value is not None:
+        last_api_run = f'Last API run: {last_api_run_value.strftime('%Y-%m-%d %H:%M:%S')}'
 
     message = (
         f'{title}'
@@ -46,6 +55,10 @@ def get_tracking_content(transaction, volatile, title):
         f'{time}'
         f'{'\n' if partial_content else ''}'
         f'{partial_content}'
+        f'{'\n' if last_run else ''}'
+        f'{last_run}'
+        f'{'\n' if last_api_run else ''}'
+        f'{last_api_run}'
     )
 
     return message

@@ -1,10 +1,8 @@
 import logging
-import os
 import re
 import uuid
 
 import requests
-from dotenv import load_dotenv
 from telegram import InlineKeyboardMarkup, Update
 from telegram.ext import (
     ContextTypes
@@ -20,9 +18,6 @@ from services.ktmb import (
 from utils.bot_helper import (
     show_error_inline, enable_hide_keyboard_only
 )
-# from utils.constants import (
-#     LOW_SEAT_COUNT
-# )
 from utils.constants import (
     RESERVE_DATA, REFRESH_TRACKING_DATA, REFRESH_RESERVED_DATA, CANCEL_RESERVATION_DATA
 )
@@ -45,7 +40,8 @@ from utils.constants import (
     SEATS_LEFT_BY_PRICES,
     LAST_REMINDED,
     INTERVALS_INDEX,
-    IS_DANGEROUS
+    IS_DANGEROUS,
+    LAST_RUN, LAST_API_RUN
 )
 from utils.keyboard_helper import (
     build_tracking_prices_keyboard,
@@ -100,6 +96,7 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
                 TO_STATION_ID: context.user_data.get(TRANSACTION, {}).get(TO_STATION_ID),
                 TO_STATION_NAME: context.user_data.get(TRANSACTION, {}).get(TO_STATION_NAME),
                 DATE: context.user_data.get(TRANSACTION, {}).get(DATE),
+                # DATE: '2025-05-05',
                 DEPARTURE_TIME: context.user_data.get(TRANSACTION, {}).get(DEPARTURE_TIME),
                 ARRIVAL_TIME: context.user_data.get(TRANSACTION, {}).get(ARRIVAL_TIME),
                 PRICE: context.user_data.get(TRANSACTION, {}).get(PRICE),
@@ -107,7 +104,9 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
                 SEATS_LEFT_BY_PRICES: {},
                 LAST_REMINDED: malaysia_now_datetime(),
                 INTERVALS_INDEX: 0,
-                IS_DANGEROUS: False
+                IS_DANGEROUS: False,
+                LAST_RUN: malaysia_now_datetime(),
+                LAST_API_RUN: malaysia_now_datetime()
             }
         )
 
@@ -212,7 +211,7 @@ async def set_reserve(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
             break
     # logger.info(context.user_data.get(TRACKING_LIST, []))
 
-    if not is_refresh and not check_active_jobs():
+    if not is_refresh and not check_active_jobs(update.effective_message.chat_id):
         try:
             # year, month, day = context.user_data.get(TRANSACTION, {}).get(DATE).split('-')
             # hour, minute = context.user_data.get(TRANSACTION, {}).get(DEPARTURE_TIME).split(':')

@@ -46,6 +46,8 @@ SEATS_LEFT_BY_PRICES = 'seats_left_by_prices'
 LAST_REMINDED = 'last_reminded'
 INTERVALS_INDEX = 'intervals_index'
 IS_DANGEROUS = 'is_dangerous'
+LAST_RUN = 'last_run'
+LAST_API_RUN = 'last_api_run'
 
 # Bottom keyboard
 TRACK_NEW_TRAIN = 'Track New Train 🚈'
