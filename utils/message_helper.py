@@ -41,10 +41,10 @@ def get_tracking_content(transaction, volatile, title):
     )
     last_run = ''
     if last_run_value is not None:
-        last_run = f'Last run: {last_run_value.strftime('%Y-%m-%d %H:%M:%S')}'
+        last_run = f'Last run: {last_run_value.strftime('%Y-%m-%d %H:%M:%S')}\n'
     last_api_run = ''
     if last_api_run_value is not None:
-        last_api_run = f'Last API run: {last_api_run_value.strftime('%Y-%m-%d %H:%M:%S')}'
+        last_api_run = f'Last API run: {last_api_run_value.strftime('%Y-%m-%d %H:%M:%S')}\n'
 
     message = (
         f'{title}'

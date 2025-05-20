@@ -99,20 +99,26 @@ async def alarm(context, chat_id) -> None:
     trigger_interval_in_seconds = context.bot_data.get(TRIGGER_INTERVAL_IN_SECONDS, 30)
     low_seat_count = context.bot_data.get(LOW_SEAT_COUNT, 20)
     intervals = [
-        trigger_interval_in_seconds,  # 30 seconds
+        trigger_interval_in_seconds,  # 5 minutes
         trigger_interval_in_seconds,
-        trigger_interval_in_seconds * 2,  # 1 minute
+        trigger_interval_in_seconds * 2,  # 10 minutes
         trigger_interval_in_seconds * 2,
-        trigger_interval_in_seconds * 4,  # 2 minutes
+        trigger_interval_in_seconds * 4,  # 20 minutes
         trigger_interval_in_seconds * 4,
-        trigger_interval_in_seconds * 8,  # 4 minutes
+        trigger_interval_in_seconds * 6,  # 30 minutes
+        trigger_interval_in_seconds * 6,
+        trigger_interval_in_seconds * 8,  # 40 minutes
         trigger_interval_in_seconds * 8,
-        trigger_interval_in_seconds * 16,  # 8 minutes
-        trigger_interval_in_seconds * 16,
-        trigger_interval_in_seconds * 32,  # 16 minutes
-        trigger_interval_in_seconds * 32,
-        trigger_interval_in_seconds * 64,  # 32 minutes
-        trigger_interval_in_seconds * 64
+        trigger_interval_in_seconds * 10,  # 50 minutes
+        trigger_interval_in_seconds * 10,
+        trigger_interval_in_seconds * 12,  # 60 minutes
+        trigger_interval_in_seconds * 12,
+        # trigger_interval_in_seconds * 16,  # 8 minutes
+        # trigger_interval_in_seconds * 16,
+        # trigger_interval_in_seconds * 32,  # 16 minutes
+        # trigger_interval_in_seconds * 32,
+        # trigger_interval_in_seconds * 64,  # 32 minutes
+        # trigger_interval_in_seconds * 64
     ]
 
     logger.info(f'>> {chat_id} -- trigger_interval_in_seconds: {trigger_interval_in_seconds}')
