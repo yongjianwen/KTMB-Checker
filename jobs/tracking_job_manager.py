@@ -217,8 +217,15 @@ async def alarm(context, chat_id) -> None:
         else:
             context.user_data[COOKIE] = session.cookies
 
+        t[LAST_API_RUN] = malaysia_now_datetime()
+
         search_data = res.get(SEARCH_DATA)
         trips_data = json.loads(json.dumps(res.get(TRIPS_DATA)))
+
+        if not trips_data:
+            logger.info(f'>> {chat_id} -- Job skipped - no trip found')
+            continue
+
         trip = next(t for t in trips_data if t.get(DEPARTURE_TIME) == departure_time)
         trip_data = trip.get(TRIP_DATA)
 
@@ -301,8 +308,6 @@ async def alarm(context, chat_id) -> None:
 
         logger.info(f'>> {chat_id} -- Update: {new_seats_left_by_prices}')
         # t[SEATS_LEFT_BY_PRICES] = {**new_seats_left_by_prices}
-
-        t[LAST_API_RUN] = malaysia_now_datetime()
 
         if to_remind and last_reminded + timedelta(seconds=interval) < malaysia_now_datetime():
             t[LAST_REMINDED] = now_datetime.replace(microsecond=0)
